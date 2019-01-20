@@ -413,7 +413,7 @@ int main(int argc, char **argv)
     if(find_arg(argc, argv, "-nogpu")) {
         gpu_index = -1;
     }
-
+    printf("!!!argc is %d",argc );
 #ifndef GPU
     gpu_index = -1;
 #else
@@ -434,6 +434,7 @@ int main(int argc, char **argv)
         run_detector(argc, argv);
     } else if (0 == strcmp(argv[1], "detect")){
         float thresh = find_float_arg(argc, argv, "-thresh", .5);
+        printf("!!!argc is %d",argc );
         char *filename = (argc > 4) ? argv[4]: 0;
         char *outfile = find_char_arg(argc, argv, "-out", 0);
         int fullscreen = find_arg(argc, argv, "-fullscreen");
