@@ -2,10 +2,11 @@
 
 char *voc_names[] = {"aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat", "chair", "cow", "diningtable", "dog", "horse", "motorbike", "person", "pottedplant", "sheep", "sofa", "train", "tvmonitor"};
 
+//训练函数，输入网络参数文件和权重文件
 void train_yolo(char *cfgfile, char *weightfile)
 {
-    char *train_images = "/data/voc/train.txt";
-    char *backup_directory = "/home/pjreddie/backup/";
+    char *train_images = "/data/voc/train.txt"; //训练样本
+    char *backup_directory = "/home/pjreddie/backup/";//备份路径
     srand(time(0));
     char *base = basecfg(cfgfile);
     printf("%s\n", base);
@@ -303,7 +304,18 @@ void test_yolo(char *cfgfile, char *weightfile, char *filename, float thresh)
         if (filename) break;
     }
 }
-
+/* yolo 相关代码
+   输入：
+   argv[2] train/test/valid/recall/demo
+   argv[3] 网络结构文件 cfg
+   argv[4] 权重文件
+   argv[5] 保存文件名
+   -prefix
+   -thresh
+   -c
+   -s
+   -avg
+*/
 void run_yolo(int argc, char **argv)
 {
     char *prefix = find_char_arg(argc, argv, "-prefix", 0);

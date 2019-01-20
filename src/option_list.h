@@ -1,7 +1,7 @@
 #ifndef OPTION_LIST_H
 #define OPTION_LIST_H
 #include "list.h"
-
+//变量名-变量值 对
 typedef struct{
     char *key;
     char *val;

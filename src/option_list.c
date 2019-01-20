@@ -56,17 +56,17 @@ int read_option(char *s, list *options)
     char *val = 0;
     for(i = 0; i < len; ++i){
         if(s[i] == '='){
-            s[i] = '\0';
-            val = s+i+1;
+            s[i] = '\0';//s 字串将不包含等号及以后的的字符
+            val = s+i+1;//指向具体数字字串
             break;
         }
     }
     if(i == len-1) return 0;
-    char *key = s;
+    char *key = s;//key为变量名
     option_insert(options, key, val);
     return 1;
 }
-
+//将键值对插入链表
 void option_insert(list *l, char *key, char *val)
 {
     kvp *p = malloc(sizeof(kvp));

@@ -1,0 +1,11 @@
+{
+    "terminal.integrated.shell.windows": "C:\\msys64\\usr\\bin\\bash.exe",
+    "terminal.integrated.shellArgs.windows": [
+    "--init-file",
+        "C:\\msys64\\etc\\profile_vscode"
+    ],
+    "files.autoGuessEncoding": true,
+    "files.associations": {
+        "stdlib.h": "c"
+    },
+}

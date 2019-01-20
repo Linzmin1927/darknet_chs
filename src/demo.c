@@ -81,7 +81,7 @@ detection *avg_predictions(network *net, int *nboxes)
     detection *dets = get_network_boxes(net, buff[0].w, buff[0].h, demo_thresh, demo_hier, 0, 1, nboxes);
     return dets;
 }
-
+//探测线程，每个一段时间自动执行一次，每次从全局缓冲区中读取数据
 void *detect_in_thread(void *ptr)
 {
     running = 1;
@@ -136,7 +136,7 @@ void *detect_in_thread(void *ptr)
     running = 0;
     return 0;
 }
-
+//释放当前帧数据，并导入新帧数据
 void *fetch_in_thread(void *ptr)
 {
     free_image(buff[buff_index]);

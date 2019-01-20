@@ -177,7 +177,7 @@ char *get_layer_string(LAYER_TYPE a)
 network *make_network(int n)
 {
     network *net = calloc(1, sizeof(network));
-    net->n = n;
+    net->n = n;//²ãÊý
     net->layers = calloc(net->n, sizeof(layer));
     net->seen = calloc(1, sizeof(size_t));
     net->t    = calloc(1, sizeof(int));

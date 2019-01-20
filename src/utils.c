@@ -110,6 +110,7 @@ int *random_index_order(int min, int max)
     return inds;
 }
 
+//将*argv中的第index个字符删除，剩下字符补位，最后多余字符填0
 void del_arg(int argc, char **argv, int index)
 {
     int i;
@@ -117,6 +118,7 @@ void del_arg(int argc, char **argv, int index)
     argv[i] = 0;
 }
 
+//查看 argv[] 中是否有*arg字段，为什么不用strstr
 int find_arg(int argc, char* argv[], char *arg)
 {
     int i;
@@ -129,7 +131,8 @@ int find_arg(int argc, char* argv[], char *arg)
     }
     return 0;
 }
-
+//在*argv字符串中找到*arg字符所在位置，并将其后面的参数转为int给def
+//找到*arg后，在字符串中将其和后面的值删除
 int find_int_arg(int argc, char **argv, char *arg, int def)
 {
     int i;
@@ -137,7 +140,7 @@ int find_int_arg(int argc, char **argv, char *arg, int def)
         if(!argv[i]) continue;
         if(0==strcmp(argv[i], arg)){
             def = atoi(argv[i+1]);
-            del_arg(argc, argv, i);
+            del_arg(argc, argv, i);//在字符串中删除*arg和之后的字符
             del_arg(argc, argv, i);
             break;
         }
@@ -298,7 +301,7 @@ list *split_str(char *s, char delim)
     }
     return l;
 }
-
+//将字符串s中的' '、'\t'、'\n' 去掉
 void strip(char *s)
 {
     size_t i;

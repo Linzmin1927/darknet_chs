@@ -8,7 +8,7 @@ int gpu_index = 0;
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
-
+//cuda½Ó¿Ú
 void cuda_set_device(int n)
 {
     gpu_index = n;

@@ -63,11 +63,31 @@ void binarize_input(float *input, int n, int size, float *binary)
     }
 }
 
+/*
+**  根据输入图像的高度(h)，两边补0的个数(pad)，卷积核尺寸(size)以及跨度(stride)计算输出的特征图的高度
+**  输入：l    卷积层，包含该卷积层的所有参数，实际这里没有必要输入整个l，因为只需要到其中的四个参数而已
+**  输出：int类型，输出图像的高度
+**  说明：这个函数的实现应该可以进一步改善一下，虽然这个函数只是在最初构建网络时调用一次，之后就不调用了，不怎么影响性能，
+**       但输入整个l实在不妥（l比较大，按值传递复制过程比较冗长），要么就只输入用到的四个参数，要么传入l的指针，
+**       并且不需要返回值了，直接在函数内部为l.out_h赋值
+*/
 int convolutional_out_height(convolutional_layer l)
 {
+    // pad是每边补0的个数，因此乘以2
+    // 当stride=1，pad=size/2（整数除法，会往下取整）时，输出高度就等于输入高度（same策略）；
+    // 当stride=1,pad=0时，为valid策略
+    // 当stride不等于1时，输出高度恒小于输入高度（尺寸一定会缩小）
+    // 计算公式推导：设输出高度为x，总图像高度为h+2*pad个像素，输出高度为x，则共有x-1次卷积核移位，
+    // 共占有(x-1)*stride+size个像素，可能还剩余res个像素，且res一定小于stride（否则还可以再移位一次），
+    // 因此有(x-1)*stride+size+res=h+2*pad，->x=(h+2*pad-size)/stride+1-res/stride，因为res<stride，
+    // 对于整数除法来说，值为0,于是得到最终的输出高度为x=(h+2*pad-size)/stride+1
     return (l.h + 2*l.pad - l.size) / l.stride + 1;
 }
 
+/*
+**  根据输入图像的宽度(w)，两边补0的个数(pad)，卷积核尺寸(size)以及跨度(stride)计算输出的特征图的宽度
+**  与上一个函数convolutional_out_height()类似，不再赘述
+*/
 int convolutional_out_width(convolutional_layer l)
 {
     return (l.w + 2*l.pad - l.size) / l.stride + 1;
@@ -173,66 +193,106 @@ void cudnn_convolutional_setup(layer *l)
 #endif
 #endif
 
+/*
+**
+**  
+**  输入：batch    每个batch含有的图片数
+**      h               图片高度（行数）
+**      w               图片宽度（列数）
+        c               输入图片通道数
+        n               卷积核个数
+		groups          分组卷积分组数，默认为1
+        size            卷积核尺寸
+        stride          跨度
+        padding         四周补0长度
+        activation      激活函数类别
+        batch_normalize 是否进行BN(规范化)
+        binary          是否对权重进行二值化
+        xnor            是否对权重以及输入进行二值化
+        adam            是否使用 adam
+*/
 convolutional_layer make_convolutional_layer(int batch, int h, int w, int c, int n, int groups, int size, int stride, int padding, ACTIVATION activation, int batch_normalize, int binary, int xnor, int adam)
 {
     int i;
+    // convolutional_layer是使用typedef定义的layer的别名
     convolutional_layer l = {0};
-    l.type = CONVOLUTIONAL;
+    l.type = CONVOLUTIONAL; // 层属性：卷积层
 
-    l.groups = groups;
-    l.h = h;
-    l.w = w;
-    l.c = c;
-    l.n = n;
-    l.binary = binary;
-    l.xnor = xnor;
-    l.batch = batch;
-    l.stride = stride;
-    l.size = size;
-    l.pad = padding;
-    l.batch_normalize = batch_normalize;
+    l.groups = groups;      //分组卷积分组数
+    l.h = h;                // 输入图像高度
+    l.w = w;                // 输入图像宽度
+    l.c = c;                // 输入图像通道
+    l.n = n;                // 卷积核个数（即滤波器个数）
+    l.binary = binary;      // 是否对权重进行二值化
+    l.xnor = xnor;          // 是否对权重以及输入进行二值化
+    l.batch = batch;        // 每个batch含有的图片数
+    l.stride = stride;      // 跨度
+    l.size = size;          // 卷积核尺寸
+    l.pad = padding;        // 四周补0长度
+    l.batch_normalize = batch_normalize;    // 是否进行BN(规范化)
 
+    // 该卷积层总的权重元素（卷积核元素）个数=输入图像通道数/分组数*卷积核个数/分组数*卷积核尺寸*分组数
+    // （因为一个卷积核要作用在输入图片的所有通道上，所以说是一个卷积核，实际含有的卷积核参数个数需要乘以输入图片的通道数）
     l.weights = calloc(c/groups*n*size*size, sizeof(float));
     l.weight_updates = calloc(c/groups*n*size*size, sizeof(float));
 
+    // bias就是Wx+b中的b（上面的weights就是W），有多少个卷积核，就有多少个b（与W的个数一一对应，每个W的元素个数为c*size*size）
     l.biases = calloc(n, sizeof(float));
     l.bias_updates = calloc(n, sizeof(float));
 
+    /// 该卷积层总的权重元素个数（权重元素个数等于输入数据的通道数*卷积核个数*卷积核的二维尺寸/分组数，注意因为每一个卷积核是同时作用于输入数据
+    /// 的多个通道上的，因此实际上卷积核是三维的，包括两个维度的平面尺寸，以及输入数据通道数这个维度，每个通道上的卷积核参数都是独立的训练参数）
     l.nweights = c/groups*n*size*size;
     l.nbiases = n;
-
+	//卷积层值初始化，采用msra初始化(何凯明提出)，适用于ReLU，之前是Xavier初始化
     // float scale = 1./sqrt(size*size*c);
     float scale = sqrt(2./(size*size*c/l.groups));
     //printf("convscale %f\n", scale);
     //scale = .02;
     //for(i = 0; i < c*n*size*size; ++i) l.weights[i] = scale*rand_uniform(-1, 1);
+    // 初始化权重：缩放因子*标准正态分布随机数，缩放因子等于sqrt(2./(size*size*c))，为什么取这个值呢？？
+    // 此处初始化权重为正态分布，而在全连接层make_connected_layer()中初始化权重是均匀分布的。
+    // TODO：个人感觉，这里应该加一个if条件语句：if(weightfile)，因为如果导入了预训练权重文件，就没有必要这样初始化了（事实上在detector.c的train_detector()函数中，
+    // 紧接着parse_network_cfg()函数之后，就添加了if(weightfile)语句判断是否导入权重系数文件，如果导入了权重系数文件，也许这里初始化的值也会覆盖掉，
+    // 总之这里的权重初始化的处理方式还是值得思考的，也许更好的方式是应该设置专门的函数进行权重的初始化，同时偏置也是，不过这里似乎没有考虑偏置的初始化，在make_connected_layer()中倒是有。。。）
     for(i = 0; i < l.nweights; ++i) l.weights[i] = scale*rand_normal();
+    // 根据该层输入图像的尺寸、卷积核尺寸以及跨度计算输出特征图的宽度和高度
     int out_w = convolutional_out_width(l);
     int out_h = convolutional_out_height(l);
-    l.out_h = out_h;
-    l.out_w = out_w;
-    l.out_c = n;
-    l.outputs = l.out_h * l.out_w * l.out_c;
-    l.inputs = l.w * l.h * l.c;
+    l.out_h = out_h;        // 输出图像高度
+    l.out_w = out_w;        // 输出图像宽度
+    l.out_c = n;            // 输出图像通道（等于卷积核个数，有多少个卷积核，最终就得到多少张特征图，每张图是一个通道）
 
+    l.outputs = l.out_h * l.out_w * l.out_c;    // 对应每张输入图片的所有输出特征图的总元素个数（每张输入图片会得到n也即l.out_c张特征图）
+    l.inputs = l.w * l.h * l.c;                 // mini-batch中每张输入图片的像素元素个数
+    // 关于上面两个参数的说明：
+    // 一个mini-batch中有多张图片，每张图片可能有多个通道（彩色图有三通道），l.inputs是每张输入图片所有通道的总元素个数，
+    // 而每张输入图片会有n个卷积核对其进行卷积操作，因此一张输入图片会输出n张特征图，这n张特征图的总元素个数就为l.outputs
+
+    // l.output为该层所有的输出（包括mini-batch所有输入图片的输出）
     l.output = calloc(l.batch*l.outputs, sizeof(float));
     l.delta  = calloc(l.batch*l.outputs, sizeof(float));
 
+    // 卷积层三种指针函数，对应三种计算：前向，反向，更新
     l.forward = forward_convolutional_layer;
     l.backward = backward_convolutional_layer;
     l.update = update_convolutional_layer;
     if(binary){
         l.binary_weights = calloc(l.nweights, sizeof(float));
-        l.cweights = calloc(l.nweights, sizeof(char));
+        l.cweights = calloc(l.nweights, sizeof(char));//这里？
         l.scales = calloc(n, sizeof(float));
     }
+	//binary 与 xnor不可以同时为1，会出现内存泄露问题 
     if(xnor){
         l.binary_weights = calloc(l.nweights, sizeof(float));
         l.binary_input = calloc(l.inputs*l.batch, sizeof(float));
     }
-
+	//BN操作，批标准化，，需要计算均值与标准差
+	//BN操作 1、上一层输出*权重后 ，输入激活函数前，进行标准化，均值与标准差通过批数据计算
+	//       2、标准化后的分别为均值0，方差1的正太分布，做如下处理：标准化值*scales+delta
+	//       3、将最后结果输入到激活值中
     if(batch_normalize){
-        l.scales = calloc(n, sizeof(float));
+        l.scales = calloc(n, sizeof(float)); //注意binary,xnor,binary不可以同时为证，否则会出现内存泄露问题
         l.scale_updates = calloc(n, sizeof(float));
         for(i = 0; i < n; ++i){
             l.scales[i] = 1;
@@ -250,7 +310,7 @@ convolutional_layer make_convolutional_layer(int batch, int h, int w, int c, int
         l.x_norm = calloc(l.batch*l.outputs, sizeof(float));
     }
     if(adam){
-        l.m = calloc(l.nweights, sizeof(float));
+        l.m = calloc(l.nweights, sizeof(float));//动量
         l.v = calloc(l.nweights, sizeof(float));
         l.bias_m = calloc(n, sizeof(float));
         l.scale_m = calloc(n, sizeof(float));
@@ -432,10 +492,27 @@ void scale_bias(float *output, float *scales, int batch, int n, int size)
     }
 }
 
+/*
+** 计算每个卷积核的偏置更新值，所谓偏置更新值，就是bias = bias - alpha * bias_update中的bias_update
+** 输入： bias_updates     当前层所有偏置的更新值，维度为l.n（即当前层卷积核的个数）
+**       delta            当前层的敏感度图（即l.delta）
+**       batch            一个batch含有的图片张数（即l.batch）
+**       n                当前层卷积核个数（即l.h）
+**       k                当前层输入特征图尺寸（即l.out_w*l.out_h）
+** 原理：当前层的敏感度图l.delta是误差函数对加权输入的导数，也就是偏置更新值，只是其中每l.out_w*l.out_h个元素都对应同一个
+**      偏置，因此需要将其加起来，得到的和就是误差函数对当前层各偏置的导数（l.delta的维度为l.batch*l.n*l.out_h*l.out_w,
+**      可理解成共有l.batch行，每行有l.n*l.out_h*l.out_w列，而这一大行又可以理解成有l.n，l.out_h*l.out_w列，这每一小行就
+**      对应同一个卷积核也即同一个偏置）
+*/
 void backward_bias(float *bias_updates, float *delta, int batch, int n, int size)
 {
     int i,b;
+    // 遍历batch中每张输入图片
+    // 注意，最后的偏置更新值是所有输入图片的总和（多张图片无非就是重复一张图片的操作，求和即可）。
+    // 总之：一个卷积核对应一个偏置更新值，该偏置更新值等于batch中所有输入图片累积的偏置更新值，
+    // 而每张图片也需要进行偏置更新值求和（因为每个卷积核在每张图片多个位置做了卷积运算，这都对偏置更新值有贡献）以得到每张图片的总偏置更新值。
     for(b = 0; b < batch; ++b){
+        // 求和得一张输入图片的总偏置更新值
         for(i = 0; i < n; ++i){
             bias_updates[i] += sum_array(delta+size*(i+b*n), size);
         }
@@ -446,8 +523,14 @@ void forward_convolutional_layer(convolutional_layer l, network net)
 {
     int i, j;
 
+    // l.outputs = l.out_h * l.out_w * l.out_c在make各网络层函数中赋值（比如make_convolutional_layer()），
+    // 对应每张输入图片的所有输出特征图的总元素个数（每张输入图片会得到n也即l.out_c张特征图）
+    // 初始化输出l.output全为0.0；输入l.outputs*l.batch为输出的总元素个数，其中l.outputs为batch
+    // 中一个输入对应的输出的所有元素的个数，l.batch为一个batch输入包含的图片张数；0表示初始化所有输出为0；
     fill_cpu(l.outputs*l.batch, 0, l.output, 1);
 
+    // 是否进行二值化操作（这个操作应该只有第一个卷积层使用吧？因为下面直接对net.input操作，这个理解是错误的，因为在forward_network()含中，
+    // 每进行一层都会将net.input = l.output，即下一层的输入被设置为当前层的输出）
     if(l.xnor){
         binarize_weights(l.weights, l.n, l.c/l.groups*l.size*l.size, l.binary_weights);
         swap_binary(&l);
@@ -455,9 +538,9 @@ void forward_convolutional_layer(convolutional_layer l, network net)
         net.input = l.binary_input;
     }
 
-    int m = l.n/l.groups;
-    int k = l.size*l.size*l.c/l.groups;
-    int n = l.out_w*l.out_h;
+    int m = l.n/l.groups;                 // 该层卷积核个数
+    int k = l.size*l.size*l.c/l.groups;   // 该层每个卷积核的参数元素个数
+    int n = l.out_w*l.out_h;              // 该层每个特征图的尺寸（元素个数）
     for(i = 0; i < l.batch; ++i){
         for(j = 0; j < l.groups; ++j){
             float *a = l.weights + j*l.nweights/l.groups;

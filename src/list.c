@@ -36,9 +36,10 @@ void *list_pop(list *l){
     
     return val;
 }
-
+//将键值对插入链表
 void list_insert(list *l, void *val)
 {
+    //创建一个节点，保存变量名-值对
 	node *new = malloc(sizeof(node));
 	new->val = val;
 	new->next = 0;

@@ -44,6 +44,14 @@ typedef struct{
 
 list *read_cfg(char *filename);
 
+/*
+**  将网络的类别转为darknet中定义的标准类别（枚举类型，在layer.h中定义）
+**  .cfg网络结构参数配置文件中，有各种网络层类别名称，诸如[maxpool],[region]等等，
+**  此函数就是通过比较字符串（C风格字符数组）来解析网络层类别，输出darknet中定义的标准网络类别名称（枚举类型）
+**  输入：type     从神经网络结构配置文件（.cfg）中读入的关于网络类别的字符数组（如type=[convolutional]）
+**  输出：LAYER_TYPE   枚举类型，是layer.h中定义的所有的网络层类别之一，如果遇到未能识别的字符数组，则返回BLANK
+**  说明：有些网络层可以有两种名称（缩写之类的）
+*/
 LAYER_TYPE string_to_layer_type(char * type)
 {
 
@@ -83,22 +91,46 @@ LAYER_TYPE string_to_layer_type(char * type)
             || strcmp(type, "[softmax]")==0) return SOFTMAX;
     if (strcmp(type, "[route]")==0) return ROUTE;
     if (strcmp(type, "[upsample]")==0) return UPSAMPLE;
+    // 如果没有一个匹配上，说明配置文件中存在不能识别的网络层名称，
+    // 返回BLANK（这时应该去检查下配置文件，看看是否有拼写错误）
     return BLANK;
 }
 
+/*
+** 释放setction内存，section结构体含有两个指针元素：type和options，两个都是动态分配内存的，
+** kvp结构体包含key和val两个指针元素，在option_list.c中的read_option()函数中，
+** 可以看到val并不是动态分配的内存,而在上一级函数read_cfg()中可以溯源看到key是动态分配的内存，
+** 因此，key和val，只能用free()释放key的内存，而val是万万不能够的。
+** 释放顺序：在直接释放section实例之前，需要首先释放其子元素的内存，直接释放section实例，
+** 只会释放type,options指针变量本身占据的内存（注意，在darknet中，所有的section本身都是动态分配内存的） ，
+** 这种嵌套内存的释放非常值得学习，注意不管什么数据，如若该类型数据还有子元素，那么先释放子元素的内存，再能直接释放其本身的内存
+**
+*/
 void free_section(section *s)
 {
+    // 释放s的type指针内存
     free(s->type);
+    // s的另一个元素options是一个list，嵌套有多个节点node，每个node存储一条信息，需要逐条释放内存
+    // 获取s->options的第一个node并释放其内存
     node *n = s->options->front;
     while(n){
+        // 获取node中的val
         kvp *pair = (kvp *)n->val;
+        // 释放key
         free(pair->key);
+        // 此处决不能：free(pair->val);
+        // 再直接释放pair
         free(pair);
+        // 在直接释放n直接，先获取下一个节点的指针，不然下一个节点的指针将无从获取
         node *next = n->next;
+        // 直接释放n
         free(n);
+        // 令n等于下一个节点的指针，在下次循环中释放
         n = next;
     }
+    // 直接释放options
     free(s->options);
+    // 最终直接释放s
     free(s);
 }
 
@@ -152,10 +184,13 @@ local_layer parse_local(list *options, size_params params)
 
 layer parse_deconvolutional(list *options, size_params params)
 {
+    // 获取卷积核个数，若配置文件中没有指定，则设为1
     int n = option_find_int(options, "filters",1);
+    // 获取卷积核尺寸，若配置文件中没有指定，则设为1
     int size = option_find_int(options, "size",1);
+    // 获取跨度，若配置文件中没有指定，则设为1
     int stride = option_find_int(options, "stride",1);
-
+    // 获取该层使用的激活函数类型，若配置文件中没有指定，则使用logistic激活函数
     char *activation_s = option_find_str(options, "activation", "logistic");
     ACTIVATION activation = get_activation(activation_s);
 
@@ -178,27 +213,41 @@ layer parse_deconvolutional(list *options, size_params params)
 
 convolutional_layer parse_convolutional(list *options, size_params params)
 {
+    // 获取卷积核个数，若配置文件中没有指定，则设为1
     int n = option_find_int(options, "filters",1);
+    // 获取卷积核尺寸，若配置文件中没有指定，则设为1
     int size = option_find_int(options, "size",1);
+    // 获取跨度，若配置文件中没有指定，则设为1
     int stride = option_find_int(options, "stride",1);
+    // 是否在输入图像四周补0,若需要补0,值为1；若配置文件中没有指定，则设为0,不补0
     int pad = option_find_int_quiet(options, "pad",0);
+    // 四周补0的长度，下面这句代码多余，有if(pad)这句就够了
     int padding = option_find_int_quiet(options, "padding",0);
     int groups = option_find_int_quiet(options, "groups", 1);
-    if(pad) padding = size/2;
+    if(pad) padding = size/2; // 如若需要补0,补0长度为卷积核一半长度（往下取整），这对应same补0策略
 
+    // 获取该层使用的激活函数类型，若配置文件中没有指定，则使用logistic激活函数
     char *activation_s = option_find_str(options, "activation", "logistic");
     ACTIVATION activation = get_activation(activation_s);
 
+    // h,w,c为上一层的输出的高度/宽度/通道数（第一层的则是输入的图片的尺寸与通道数，也即net.h,net.w,net.c），batch所有层都一样（不变），
+    // params.h,params.w,params.c及params.inputs在构建每一层之后都会更新为上一层相应的输出参数（参见parse_network_cfg()）
     int batch,h,w,c;
     h = params.h;
     w = params.w;
     c = params.c;
     batch=params.batch;
+
+    // 如果这三个数存在0值，那肯定有问题了，因为上一层（或者输入）必须不为0
     if(!(h && w && c)) error("Layer before convolutional layer must output image.");
+    // 是否进行规范化，1表示进行规范化，若配置文件中没有指定，则设为0,即默认不进行规范化
     int batch_normalize = option_find_int_quiet(options, "batch_normalize", 0);
+    // 是否对权重进行二值化，1表示进行二值化，若配置文件中没有指定，则设为0,即默认不进行二值化
     int binary = option_find_int_quiet(options, "binary", 0);
+    // 是否对权重以及输入进行二值化，1表示是，若配置文件中没有指定，则设为0,即默认不进行二值化
     int xnor = option_find_int_quiet(options, "xnor", 0);
 
+    //以上已经获取到了构建一层卷积层的所有参数，现在可以用这些参数构建卷积层了
     convolutional_layer layer = make_convolutional_layer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net->adam);
     layer.flipped = option_find_int_quiet(options, "flipped", 0);
     layer.dot = option_find_float_quiet(options, "dot", 0);
@@ -271,6 +320,11 @@ layer parse_softmax(list *options, size_params params)
 {
     int groups = option_find_int_quiet(options, "groups",1);
     layer l = make_softmax_layer(params.batch, params.inputs, groups);
+    // softmax的温度参数，温度参数对于softmax还是比较重要的，当temperature很大时，即趋于正无穷时，所有的激活值对应的激活概率趋近于相同
+    // （激活概率差异性较小）；而当temperature很低时，即趋于0时，不同的激活值对应的激活概率差异也就越大。
+    // 可以参考博客：http://www.cnblogs.com/maybe2030/p/5678387.html?utm_source=tuicool&utm_medium=referral
+    // 或者搜索softmax with temperature，应该会有比较多的搜索结果
+    // 该参数的值由网络配置文件指定（比如cifar.test.cfg），如未指定，则使用默认值1
     l.temperature = option_find_float_quiet(options, "temperature", 1);
     char *tree_file = option_find_str(options, "tree", 0);
     if (tree_file) l.softmax_tree = read_tree(tree_file);
@@ -638,7 +692,7 @@ route_layer parse_route(list *options, size_params params, network *net)
 
     return layer;
 }
-
+//学习率策略
 learning_rate_policy get_policy(char *s)
 {
     if (strcmp(s, "random")==0) return RANDOM;
@@ -651,14 +705,17 @@ learning_rate_policy get_policy(char *s)
     fprintf(stderr, "Couldn't find policy %s, going with constant\n", s);
     return CONSTANT;
 }
-
+//查看[net]或[network]中超参数列表，并初始化网络超参数结构体
 void parse_net_options(list *options, network *net)
 {
+    // 从.cfg网络参数配置文件中读入一些通用的网络配置参数，option_find_int()以及option_find_float()函数的第三个参数都是默认值（如果配置文件中没有设置该参数的值，就取默认值）
+    // 稍微提一下batch这个参数，首先读入的net->batch是真实batch值，即每个batch中包含的照片张数，而后又读入一个subdivisions参数，这个参数暂时还没搞懂有什么用，
+    // 总之最终的net->batch = net->batch / net->subdivisions
     net->batch = option_find_int(options, "batch",1);
     net->learning_rate = option_find_float(options, "learning_rate", .001);
     net->momentum = option_find_float(options, "momentum", .9);
     net->decay = option_find_float(options, "decay", .0001);
-    int subdivs = option_find_int(options, "subdivisions",1);
+    int subdivs = option_find_int(options, "subdivisions",1);//多机or多GPU??
     net->time_steps = option_find_int_quiet(options, "time_steps",1);
     net->notruth = option_find_int_quiet(options, "notruth",0);
     net->batch /= subdivs;
@@ -666,40 +723,43 @@ void parse_net_options(list *options, network *net)
     net->subdivisions = subdivs;
     net->random = option_find_int_quiet(options, "random", 0);
 
-    net->adam = option_find_int_quiet(options, "adam", 0);
+    net->adam = option_find_int_quiet(options, "adam", 0);//默认不启用adam?
     if(net->adam){
         net->B1 = option_find_float(options, "B1", .9);
         net->B2 = option_find_float(options, "B2", .999);
         net->eps = option_find_float(options, "eps", .0000001);
     }
-
+    //输入图像 w h c 默认为0？表示必须指定？
     net->h = option_find_int_quiet(options, "height",0);
     net->w = option_find_int_quiet(options, "width",0);
     net->c = option_find_int_quiet(options, "channels",0);
+
+    // 一张输入图片的元素个数，如果网络配置文件没有指定，则默认值为net->h * net->w * net->c
     net->inputs = option_find_int_quiet(options, "inputs", net->h * net->w * net->c);
     net->max_crop = option_find_int_quiet(options, "max_crop",net->w*2);
     net->min_crop = option_find_int_quiet(options, "min_crop",net->w);
-    net->max_ratio = option_find_float_quiet(options, "max_ratio", (float) net->max_crop / net->w);
+    net->max_ratio = option_find_float_quiet(options, "max_ratio", (float) net->max_crop / net->w);//变形角度范围？
     net->min_ratio = option_find_float_quiet(options, "min_ratio", (float) net->min_crop / net->w);
+
     net->center = option_find_int_quiet(options, "center",0);
     net->clip = option_find_float_quiet(options, "clip", 0);
 
     net->angle = option_find_float_quiet(options, "angle", 0);
-    net->aspect = option_find_float_quiet(options, "aspect", 1);
-    net->saturation = option_find_float_quiet(options, "saturation", 1);
-    net->exposure = option_find_float_quiet(options, "exposure", 1);
-    net->hue = option_find_float_quiet(options, "hue", 0);
-
+    net->aspect = option_find_float_quiet(options, "aspect", 1);//方向
+    net->saturation = option_find_float_quiet(options, "saturation", 1);//饱和度
+    net->exposure = option_find_float_quiet(options, "exposure", 1);//曝光度
+    net->hue = option_find_float_quiet(options, "hue", 0);//色彩
+    //长宽高必须指定
     if(!net->inputs && !(net->h && net->w && net->c)) error("No input parameters supplied");
 
-    char *policy_s = option_find_str(options, "policy", "constant");
+    char *policy_s = option_find_str(options, "policy", "constant");//学习率策略?
     net->policy = get_policy(policy_s);
-    net->burn_in = option_find_int_quiet(options, "burn_in", 0);
-    net->power = option_find_float_quiet(options, "power", 4);
+    net->burn_in = option_find_int_quiet(options, "burn_in", 0);//老化？？
+    net->power = option_find_float_quiet(options, "power", 4);//4次方？？
     if(net->policy == STEP){
-        net->step = option_find_int(options, "step", 1);
+        net->step = option_find_int(options, "step", 1);//学习率参数
         net->scale = option_find_float(options, "scale", 1);
-    } else if (net->policy == STEPS){
+    } else if (net->policy == STEPS){//运行一定步长久修改学习率
         char *l = option_find(options, "steps");
         char *p = option_find(options, "scales");
         if(!l || !p) error("STEPS policy must have steps and scales in cfg file");
@@ -732,7 +792,7 @@ void parse_net_options(list *options, network *net)
     }
     net->max_batches = option_find_int(options, "max_batches", 0);
 }
-
+//判断是否为"[net]"或"[network]"
 int is_network(section *s)
 {
     return (strcmp(s->type, "[net]")==0
@@ -741,17 +801,29 @@ int is_network(section *s)
 
 network *parse_network_cfg(char *filename)
 {
+    // 从神经网络结构参数文件中读入所有神经网络层的结构参数，存储到sections中，
+    // sections的每个node包含一层神经网络的所有结构参数
     list *sections = read_cfg(filename);
+
+    // 获取sections的第一个节点，可以查看一下cfg/***.cfg文件，其实第一块参数（以[net]开头）不是某层神经网络的参数，
+    // 而是关于整个网络的一些通用参数，比如学习率，衰减率，输入图像宽高，batch大小等，
+    // 具体的关于某个网络层的参数是从第二块开始的，如[convolutional],[maxpool]...，
+    // 这些层并没有编号，只说明了层的属性，但层的参数都是按顺序在文件中排好的，读入时，
+    // sections链表上的顺序就是文件中的排列顺序。
     node *n = sections->front;
     if(!n) error("Config file has no sections");
-    network *net = make_network(sections->size - 1);
+    // 创建网络结构并动态分配内存：输入网络层数为sections->size - 1，sections的第一段不是网络层，而是通用网络参数
+    network *net = make_network(sections->size - 1);//确定建立一个有sections->size - 1层的网络
+    // 所用显卡的卡号（gpu_index在cuda.c中用extern关键字声明）
+    // 在调用parse_network_cfg()之前，使用了cuda_set_device()设置了gpu_index的值号为当前活跃GPU卡号
     net->gpu_index = gpu_index;
-    size_params params;
+    // size_params结构体元素不含指针变量
+    size_params params;//表示每一层的参数
 
-    section *s = (section *)n->val;
-    list *options = s->options;
+    section *s = (section *)n->val;//第一层的参数
+    list *options = s->options;//第一层，参数列表
     if(!is_network(s)) error("First section must be [net] or [network]");
-    parse_net_options(options, net);
+    parse_net_options(options, net);//解析cfg中第一层参数，可以初始化net参数
 
     params.h = net->h;
     params.w = net->w;
@@ -762,16 +834,19 @@ network *parse_network_cfg(char *filename)
     params.net = net;
 
     size_t workspace_size = 0;
-    n = n->next;
+    n = n->next;//指向第二层，实际网络的第一层
     int count = 0;
-    free_section(s);
+    free_section(s);//第一层，整个网络的参数已提取完毕，释放掉
+    // 此处stderr不是错误提示，而是输出结果提示，提示网络结构
     fprintf(stderr, "layer     filters    size              input                output\n");
     while(n){
         params.index = count;
         fprintf(stderr, "%5d ", count);
-        s = (section *)n->val;
+        s = (section *)n->val;//当前层的层参数 section
         options = s->options;
+        // 定义网络层
         layer l = {0};
+        // 获取网络层的类别
         LAYER_TYPE lt = string_to_layer_type(s->type);
         if(lt == CONVOLUTIONAL){
             l = parse_convolutional(options, params);
@@ -847,12 +922,13 @@ network *parse_network_cfg(char *filename)
         l.dontloadscales = option_find_int_quiet(options, "dontloadscales", 0);
         l.learning_rate_scale = option_find_float_quiet(options, "learning_rate", 1);
         l.smooth = option_find_float_quiet(options, "smooth", 0);
-        option_unused(options);
-        net->layers[count] = l;
+        option_unused(options);//显示未用参数？
+        net->layers[count] = l;// net的layers指向每一层的参数
         if (l.workspace_size > workspace_size) workspace_size = l.workspace_size;
         free_section(s);
         n = n->next;
         ++count;
+        // 构建每一层之后，如果之后还有层，则更新params.h,params.w,params.c及params.inputs为上一层相应的输出参数
         if(n){
             params.h = l.out_h;
             params.w = l.out_w;
@@ -861,7 +937,7 @@ network *parse_network_cfg(char *filename)
         }
     }
     free_list(sections);
-    layer out = get_network_output_layer(net);
+    layer out = get_network_output_layer(net);//如果有cost，cost就是输出，否则    net->layers[0]就是输出
     net->outputs = out.outputs;
     net->truths = out.outputs;
     if(net->layers[net->n-1].truths) net->truths = net->layers[net->n-1].truths;
@@ -882,38 +958,61 @@ network *parse_network_cfg(char *filename)
             net->workspace = calloc(1, workspace_size);
         }
 #else
-        net->workspace = calloc(1, workspace_size);
+        net->workspace = calloc(1, workspace_size);//workspace_size为网络最大一层的尺寸
 #endif
     }
     return net;
 }
-
+//
+/*
+**  读取神经网络结构配置文件（.cfg文件）中的配置数据，将每个神经网络层参数读取到每个section结构体中，
+**  读取cfg文件，并将每一层存到options列表中，每一层是一个section变量(type 层名，options链表存参数
+**  （每个section是sections的一个节点）而后全部插入到list结构体sections中并返回
+**  输入： filename    C风格字符数组，神经网络结构配置文件路径
+**  返回： list结构体指针，包含从神经网络结构配置文件中读入的所有神经网络层的参数
+*/
 list *read_cfg(char *filename)
 {
+    // C风格文件流，"r"，只读模式，要求filename必须存在，否则返回空指针
     FILE *file = fopen(filename, "r");
     if(file == 0) file_error(filename);
     char *line;
-    int nu = 0;
-    list *options = make_list();
+    int nu = 0; //统计当前读到第几行
+    // 动态分配list对象内存，并初始化sections所有元素值为0
+    // sections包含所有的section，也即包含所有的神经网络层参数
+    list *options = make_list();//初始化一个列表
+    // 一个section表示配置文件中的一个字段，也就是对应神经网络结构中的一层
+    // 因此，一个section将读取并存储某一层的参数以及该层的类别名
     section *current = 0;
+    // 调用fgetl读取文件中的一行（返回字符数组指针）
     while((line=fgetl(file)) != 0){
         ++ nu;
+        // 去除读入行中可能含有的空白符
         strip(line);
         switch(line[0]){
+            // 以[开头的行是层的类别说明，比如[net],[maxpool],[convolutional]之类的
             case '[':
+                // 动态分配一个section内存给current
                 current = malloc(sizeof(section));
+                // 将单个section current插入section集合sections中
                 list_insert(options, current);
+                // 进一步动态的为current的元素options动态分配内存
                 current->options = make_list();
+                // 以[开头的是层的类别，赋值给type
                 current->type = line;
                 break;
+            // 一下三种情况是无效行，直接释放内存即可（以#开头的是注释）
             case '\0':
             case '#':
             case ';':
                 free(line);
                 break;
+            // 剩下的才真正是网络结构的数据，调用read_option()函数读取
+            // 返回0说明文件中的数据格式有问题，将会提示错误
             default:
-                if(!read_option(line, current->options)){
+                if(!read_option(line, current->options)){ //每一行一个参数，将一个参数转为键值对插入改成参数列表
                     fprintf(stderr, "Config file error line %d, could parse: %s\n", nu, line);
+                    // C语言释放堆内存（动态分配的内存）：动态分配的内存一定要及时释放
                     free(line);
                 }
                 break;
@@ -1082,6 +1181,12 @@ void save_weights(network *net, char *filename)
     save_weights_upto(net, filename, net->n);
 }
 
+/*
+**  转置矩阵
+**  输入： a       要进行转置的矩阵指针，也是最后的输出，转置后的矩阵也会存到该变量上
+**        rows    a的行数（转置前）
+**        cols    a的列数（转置前）
+*/
 void transpose_matrix(float *a, int rows, int cols)
 {
     float *transpose = calloc(rows*cols, sizeof(float));
@@ -1091,7 +1196,11 @@ void transpose_matrix(float *a, int rows, int cols)
             transpose[y*rows + x] = a[x*cols + y];
         }
     }
+    // 将transpose内存块直接复制给a
+    // memcpy()函数常用于数组复制
     memcpy(a, transpose, rows*cols*sizeof(float));
+    // 切记释放已经没有用的transpose，因为a中已经复制了transpose的值
+    // 注意memcpy不是完成指针意义上复制（地址复制），而是内容上的复制
     free(transpose);
 }
 

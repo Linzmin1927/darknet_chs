@@ -21,12 +21,14 @@ extern void run_go(int argc, char **argv);
 extern void run_art(int argc, char **argv);
 extern void run_super(int argc, char **argv);
 extern void run_lsd(int argc, char **argv);
-
+/*
+*/
 void average(int argc, char *argv[])
 {
     char *cfgfile = argv[2];
     char *outfile = argv[3];
     gpu_index = -1;
+    //根据cfgfile初始化两个网络实体
     network *net = parse_network_cfg(cfgfile);
     network *sum = parse_network_cfg(cfgfile);
 
@@ -41,9 +43,9 @@ void average(int argc, char *argv[])
         for(j = 0; j < net->n; ++j){
             layer l = net->layers[j];
             layer out = sum->layers[j];
-            if(l.type == CONVOLUTIONAL){
+            if(l.type == CONVOLUTIONAL){//这里卷积核权重参数加倍？？
                 int num = l.n*l.c*l.size*l.size;
-                axpy_cpu(l.n, 1, l.biases, 1, out.biases, 1);
+                axpy_cpu(l.n, 1, l.biases, 1, out.biases, 1);//这里其实想表达 out.biases = out.biases + 1*l.biases，且l=out
                 axpy_cpu(num, 1, l.weights, 1, out.weights, 1);
                 if(l.batch_normalize){
                     axpy_cpu(l.n, 1, l.scales, 1, out.scales, 1);
@@ -406,6 +408,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "usage: %s <function>\n", argv[0]);
         return 0;
     }
+    //查看是否有"-i"字段，有将其值赋给gpu_index 
     gpu_index = find_int_arg(argc, argv, "-i", 0);
     if(find_arg(argc, argv, "-nogpu")) {
         gpu_index = -1;

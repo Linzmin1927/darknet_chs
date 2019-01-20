@@ -45,10 +45,11 @@ typedef struct{
 } tree;
 tree *read_tree(char *filename);
 
+//激活函数一共14种
 typedef enum{
     LOGISTIC, RELU, RELIE, LINEAR, RAMP, TANH, PLSE, LEAKY, ELU, LOGGY, STAIR, HARDTAN, LHTAN, SELU
 } ACTIVATION;
-
+//图片类型4种
 typedef enum{
     PNG, BMP, TGA, JPG
 } IMTYPE;
@@ -111,7 +112,7 @@ typedef struct network network;
 
 struct layer;
 typedef struct layer layer;
-
+//一个层结构体
 struct layer{
     LAYER_TYPE type;
     ACTIVATION activation;
@@ -135,7 +136,7 @@ struct layer{
     int truths;
     int h,w,c;
     int out_h, out_w, out_c;
-    int n;
+    int n;              //卷积核个数
     int max_boxes;
     int groups;
     int size;
@@ -428,7 +429,7 @@ typedef enum {
 } learning_rate_policy;
 
 typedef struct network{
-    int n;
+    int n; //层数
     int batch;
     size_t *seen;
     int *t;
@@ -457,8 +458,8 @@ typedef struct network{
     float B2;
     float eps;
 
-    int inputs;
-    int outputs;
+    int inputs; //输入元素数量
+    int outputs;//输出数量
     int truths;
     int notruth;
     int h, w, c;
@@ -474,7 +475,7 @@ typedef struct network{
     float hue;
     int random;
 
-    int gpu_index;
+    int gpu_index; //gpu设备号，为-1表示不用GPU
     tree *hierarchy;
 
     float *input;
