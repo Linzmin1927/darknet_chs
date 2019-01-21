@@ -1,0 +1,135 @@
+cfg文件是darknet中描述网络结构的文件，和caffe的prototxt类似。
+在darknet框架下cfg中一般先以[net]或[network]开头，描述网络的
+整体参数，然后接着各层参数的描述，查看string_to_layer_type()
+函数，一共包括以下层结构：[shortcut],[crop],[cost],[detection],
+[region],[yolo],[iseg],[local],[conv]/[convolutional],
+[deconv]/[deconvolutional],[activation],[logistic],[l2norm],
+[crnn],[gru],[lstm],[rnn],[conn]/[connected],[max]/[maxpool],
+[reorg],[avg]/[avgpool],[dropout],[lrn]/[normalization],[batchnorm],
+[soft]/[softmax],[route].
+
+其中相关参数字段，参见如下：
+
+[net] /[network]  #该部分描述整个网络的超参数，在void parse_net_options()中解析
+#输入图像相关参数
+height			#输入图像高，为32的倍数，默认为0
+width  		    #输入图像宽，为32的倍数，默认为0
+channels 		#输入图像通道，一般三通道，默认为0
+batch     		#这儿batch与机器学习中的batch有少许差别，仅表示网络积累多少个样本后进行一次BP，默认为1
+subdivisions  	#这个参数表示将一个batch的图片分sub次完成网络的前向传播，在Darknet中，batch和sub是结合使用的，
+				#例如这儿的batch=64，sub=16表示训练的过程中将一次性加载64张图片进内存，然后分16次完成前向传播，
+				#意思是每次4张，前向传播的循环过程中累加loss求平均，待64张图片都完成前向传播后，再一次性后传更新参数，
+				#调参经验：sub一般设置16，不能太大或太小，batch的值可以根据显存占用情况动态调整，一次性加减sub大小即可，
+				#通常情况下batch越大越好，注意，在测试的时候batch和sub都设置为1！
+				#默认为1
+
+#数据增强相关参数
+max_crop	    #输入图的最小边需要在[min_crop,max_crop]区间内，如果输入和这个不符合，则通过缩放使之符合。默认为 2*输入宽度w
+min_crop  	    #默认为 输入宽度w
+max_ratio       #与max_crop/min_crop类似， 默认为max_crop  / w
+min_ratio       #默认为 min_crop  / w
+
+center          #暂不清楚，默认为 0
+clip            #可能和图片裁剪有关，默认为 0
+
+angle           #通过旋转角度来生成更多训练样本，默认为0
+aspect          #通过方向来生成更多训练样本，默认为1
+saturation      #通过调整饱和度来生成更多训练样本，默认为1
+exposure   	    #通过调整曝光量来生成更多训练样本，默认为1
+hue             #通过调整色调来生成更多训练样本，默认为0
+
+
+#学习率相关参数
+learning_rate   #基础学习率，默认为0.001
+momentum        #梯度下降动量，默认为0.9
+decay           #权重衰减正则项，防止过拟合，默认为0.0001
+
+time_steps      #时间步数，RNN/LSTM模型中参数
+notruth         #不清楚，没用到
+random          #
+adam            #是否使用adma，默认为 0
+B1              # adam 参数
+B2              # adam 参数
+eps             # adam 参数
+
+policy          #学习率衰减策略,默认constant，有:random,poly,constant,step,exp,sigmoid,steps  
+burn_in 	    #设置了这个参数，当update_num小于burn_in时，不是使用配置的学习速率更新策略，
+				#而是按照公式lr = base_lr * power(batch_num/burn_in,pwr) 更新，其背后的假设是：
+				#全局最优点就在网络初始位置附近，所以训练开始后的burn_in次更新，学习速率从小到大变化。
+				#update次数超过burn_in后，采用配置的学习速率更新策略从大到小变化，显然finetune时可以尝试。
+				#默认为0
+power    		#学习率衰减公式中，幂次方参数，默认为4
+step       		#采用step或sigmoid学习率衰减策略时的参数，默认为1
+scale      		#采用step和steps学习率衰减策略时的参数，默认为1
+steps      		#采用steps策略时参数，多个参数之间使用，分开，例如 10000,1000000等
+scales   		#采用steps策略时参数，多个参数之间使用，与steps保持一致
+gamma  			#采用exp，sigmoid时启用参数，默认为1
+max_batches  	#最大批数量，默认为0
+
+
+[conv]/[convolutional]  #该部分为卷积层参数，在parse_convolutional()中解析
+filters  		#卷积核个数,默认为1
+size			#获取卷积核尺寸,默认为1
+stride			#卷积跨度,默认为1
+pad				#是否在输入图像四周补0,若需要补0,值为1，默认为0
+padding			#四周补0的长度，默认为size/2，向下取整
+groups			#分组卷积（深度卷积），组数，默认为1
+activation      #激活函数，默认为logistic，其他还有：logistic,loggy,relu,elu,selu,relie,plse,hardtan,lhtan,linear,ramp,leaky,tanh,stair
+batch_normalize #是否进行规范化，1表示进行规范化,默认为0
+binary			#是否对权重进行二值化，1表示进行二值化,默认为0
+xnor			#是否对权重以及输入进行二值化，1表示是,默认为0
+flipped			#是否翻转，默认为0
+dot				#暂不清楚，默认为0，此变量已无使用
+
+
+[shortcut]      #捷径层，与卷积层一起构建残差模块，parse_shortcut()中解析
+from            #表示当前层与前面的多少层进行叠加，-3表示前面第三层。没有默认参数，必须制定
+activation      #激活函数，一般为 leaky,ReLU,默认为linear
+alpha			#叠加权重，默认为1
+beta			#叠加权重，默认为1	
+#注意[shortcut]层与[convolutional]层可以组成残差模块
+#		 Residual Block
+#		[convolutional]
+#		batch_normalize=1
+#		filters=64
+#		size=3
+#		stride=1
+#		pad=1
+#		activation=leaky
+#		
+#		[convolutional]
+#		batch_normalize=1
+#		filters=64
+#		size=3
+#		stride=1
+#		pad=1
+#		activation=linear
+#		
+#		[shortcut]
+#		activation=leaky
+#		from=-3
+#
+
+
+[avg]/[avgpool] #均值池化层，一般接在最后softmax层前，替代全连接层，减少计算量
+				#相关参数根据上一层输出自动生成，在parse_avgpool()中解析 
+
+
+[softmax]       #池化层，网络最后输出预测的概率分布，在parse_softmax()中解析
+groups			#分组数，softmax计算量较大，分为多组计算，默认为1	
+temperature		#softmax的温度参数，当temperature很大时，即趋于正无穷时，所有的激活值对应的激活概率趋近于相同
+				#（激活概率差异性较小）；而当temperature很低时，即趋于0时，不同的激活值对应的激活概率差异也就越大。
+				#默认为1
+tree			#softmax计算量较大，按照树结构计算？？，默认为0
+spatial			#与GPU计算相关，分组计算默认为0
+noloss			#是否不计算损失(交叉熵)，默认计算，默认为0
+
+[cost]			#代价层函数，在目标探测中计算预测值与真实值得总体损失,在parse_cost()中解析
+
+type            #代价函数类型，默认了为sse，其他有:seg,sse,masked,smooth,L1,wgan
+scale    		#缩放尺度，默认为1
+ratio			#暂不清楚，与GPU计算有关，默认为0
+noobj			#noobject_scale，暂不清楚，与GPU计算有关，默认为1
+thresh			#iou阈值，当best_iou大于阈值时，损失系数置0,默认为0
+
+
