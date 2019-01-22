@@ -166,8 +166,14 @@ struct layer{
                                      * 另一些尺寸，则需要通过网络配置文件指定，如未指定，取
                                      * 默认值1，比如全连接层（见parse_connected()函数）
                                      */
-    int nweights;                   /**/
-    int nbiases;                    /**/
+	int nweights;                   /* 该卷积层总的权重元素个数（权重元素个数等于输入数据的
+									 * 通道数*卷积核个数*卷积核的二维尺寸/分组数，注意因为每
+									 * 一个卷积核是同时作用于输入数据的多个通道上的，因此实
+									 * 际上卷积核是三维的，包括两个维度的平面尺寸，以及输入
+									 * 数据通道数这个维度，每个通道上的卷积核参数都是独立的
+									 * 训练参数）
+									 */
+    int nbiases;                    /* 权重偏置的数量，WX+b中的b的个数，与卷积核个数一致*/
     int extra;                      /**/
     int truths;                     /* 根据region_layer.c判断，这个变量表示一张图片含有的真实
                                      * 值的个数，对于检测模型来说，一个真实的标签含有5个值，
@@ -224,7 +230,7 @@ struct layer{
     int flatten;                    /**/
     int spatial;                    /**/
     int pad;                        /* 四周补0长度，卷积层，最大池化层中使用*/
-    int sqrt;                       /**/
+    int sqrt;                       /* 输出尺寸是否平方，为1，这输出w 变为w*w 输入h变为 h*h*/
     int flip;                       /**/
     int index;                      /**/
     int binary;                     /* 是否对权重进行二值化 */
@@ -313,9 +319,10 @@ struct layer{
                                      * 的倒数（darknet实现用的是inverted dropout），用于缩放
                                      * 输入元素的值
                                      * 在crop_layer 中，表示输出wh与输入wh的缩放比例
+									 * 在卷积层是权重初始化的系数为sqrt(2./(size*size*c/l.groups))，msra初始化
                                      */
 
-    char  * cweights;               /**/
+    char  * cweights;               /* 开启二值化(binary)时分配空间，大小为nweights，源码中没用用到该空间！*/
     int   * indexes;                /**/
     int   * input_layers;           /**/
     int   * input_sizes;            /**/
@@ -355,67 +362,77 @@ struct layer{
     float * concat;                 /**/
     float * concat_delta;           /**/
 
-    float * binary_weights;         /**/
+    float * binary_weights;         /* 启用二值化（binary）时的，二值化权重空间*/
 
-    float * biases;                 /**/
-    float * bias_updates;           /**/
+    float * biases;                 /* 指向偏置存储空间，bias就是Wx+b中的b（weights就是W），有多少
+									 * 个卷积核，就有多少个b（与W的个数一一对应，每个W的元素个数为
+									 * c*size*size）
+									 */
+    float * bias_updates;           /* 指向bias更新暂存空间，大小与biases一致 */
 
-    float * scales;                 /**/
-    float * scale_updates;          /**/
+    float * scales;                 /* 开启二值化或批标准化时，指向存放缩放系数的内存空间
+									 * batch_normalize中初始值全为1	，大小为卷积核数*sizeof(float)
+									 */
+    float * scale_updates;          /* 开启批标准化时，指向存放缩放系数更新的内存空间，大小与scales一致*/
 
-    float * weights;                /**/
-    float * weight_updates;         /**/
+    float * weights;                /* 指向权重存储空间，空间大小为该卷积层总的权重元素（卷积核元素）个数
+									 * =输入图像通道数/分组数*卷积核个数/分组数*卷积核尺寸*分组数
+									 */
+    float * weight_updates;         /* 指向权重更新暂存空间，大小与weights一致 */
 
-    float * delta;                  /**/
-    float * output;                 /**/
-    float * loss;                   /**/
-    float * squared;                /**/
-    float * norms;                  /**/
+    float * delta;                  /* 指向output暂存空间，大小与output一致 */
+    float * output;                 /* 指向该层输出存储空间， l.output为该层所有的输出
+									 *（包括mini-batch所有输入图片的输出）
+									 */
+    float * loss;                   /* 指向loss值暂存空间，logistic_layer与*softmax_layer中应用，大小为输入元素数量*batch*/
+    float * squared;                /* normalization_layer中暂存空间，其他地方没看到引用*/
+    float * norms;                  /* normalization_layer中引用暂存空间，其他地方没看到引用*/
 
-    float * spatial_mean;
-    float * mean;
-    float * variance;
+    float * spatial_mean;           /* 没用到 */
+    float * mean;                   /* batch_normalize 中均值*/
+    float * variance;               /* batch_normalize 中方差*/
 
-    float * mean_delta;
-    float * variance_delta;
+    float * mean_delta;             /* batch_normalize计算中参数*/
+    float * variance_delta;         /* batch_normalize计算中参数*/
 
-    float * rolling_mean;
-    float * rolling_variance;
+    float * rolling_mean;           /* batch_normalize计算中参数*/
+    float * rolling_variance;       /* batch_normalize计算中参数*/
 
-    float * x;
-    float * x_norm;
+    float * x;                  	/* batch_normalize计算中参数*/
+    float * x_norm;                 /* batch_normalize计算中参数*/
 
-    float * m;
-    float * v;
+    float * m;                  	/* adam中的参数 动量*/
+    float * v;                  	/* adam中的参数*/
     
-    float * bias_m;
-    float * bias_v;
-    float * scale_m;
-    float * scale_v;
+    float * bias_m;                 /* adam中的参数*/
+    float * bias_v;                 /* adam中的参数*/
+    float * scale_m;                /* adam中的参数*/
+    float * scale_v;                /* adam中的参数*/
 
+	/* 此部分为RNN/LSTM/GRU 模型参数*/
+    float *z_cpu;                  	/**/
+    float *r_cpu;                  	/**/
+    float *h_cpu;                  	/**/
+    float * prev_state_cpu;         /**/
 
-    float *z_cpu;
-    float *r_cpu;
-    float *h_cpu;
-    float * prev_state_cpu;
+    float *temp_cpu;                /**/
+    float *temp2_cpu;               /**/
+    float *temp3_cpu;               /**/
 
-    float *temp_cpu;
-    float *temp2_cpu;
-    float *temp3_cpu;
+    float *dh_cpu;                  /**/
+    float *hh_cpu;                  /**/
+    float *prev_cell_cpu;           /**/
+    float *cell_cpu;                /**/
+    float *f_cpu;                   /**/
+    float *i_cpu;                   /**/
+    float *g_cpu;                   /**/
+    float *o_cpu;                   /**/
+    float *c_cpu;                   /**/
+    float *dc_cpu;                  /**/
 
-    float *dh_cpu;
-    float *hh_cpu;
-    float *prev_cell_cpu;
-    float *cell_cpu;
-    float *f_cpu;
-    float *i_cpu;
-    float *g_cpu;
-    float *o_cpu;
-    float *c_cpu;
-    float *dc_cpu; 
+    float * binary_input;           /* 开启xnor后，指向输入二值化存储空间*/
 
-    float * binary_input;
-
+	/* 此部分为RNN/LSTM/GRU 模型参数*/
     struct layer *input_layer;
     struct layer *self_layer;
     struct layer *output_layer;
@@ -440,24 +457,26 @@ struct layer{
     struct layer *input_h_layer;
     struct layer *state_h_layer;
 	
-    struct layer *wz;
-    struct layer *uz;
-    struct layer *wr;
-    struct layer *ur;
-    struct layer *wh;
-    struct layer *uh;
-    struct layer *uo;
-    struct layer *wo;
-    struct layer *uf;
-    struct layer *wf;
-    struct layer *ui;
-    struct layer *wi;
-    struct layer *ug;
-    struct layer *wg;
+    struct layer *wz;               /**/
+    struct layer *uz;               /**/
+    struct layer *wr;               /**/
+    struct layer *ur;               /**/
+    struct layer *wh;               /**/
+    struct layer *uh;               /**/
+    struct layer *uo;               /**/
+    struct layer *wo;               /**/
+    struct layer *uf;               /**/
+    struct layer *wf;               /**/
+    struct layer *ui;               /**/
+    struct layer *wi;               /**/
+    struct layer *ug;               /**/
+    struct layer *wg;               /**/
 
-    tree *softmax_tree;
+    tree *softmax_tree;             /* softmax参数 */
 
-    size_t workspace_size;
+    size_t workspace_size;          /* Conv/Deconv中返回输出内存空间的大小
+									 * local_layer 中返回输出元素个数
+								     */
 
 #ifdef GPU
     int *indexes_gpu;

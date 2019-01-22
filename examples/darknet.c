@@ -28,7 +28,7 @@ void average(int argc, char *argv[])
     char *cfgfile = argv[2];
     char *outfile = argv[3];
     gpu_index = -1;
-    //¸ù¾İcfgfile³õÊ¼»¯Á½¸öÍøÂçÊµÌå
+    //æ ¹æ®cfgfileåˆå§‹åŒ–ä¸¤ä¸ªç½‘ç»œå®ä½“
     network *net = parse_network_cfg(cfgfile);
     network *sum = parse_network_cfg(cfgfile);
 
@@ -43,9 +43,9 @@ void average(int argc, char *argv[])
         for(j = 0; j < net->n; ++j){
             layer l = net->layers[j];
             layer out = sum->layers[j];
-            if(l.type == CONVOLUTIONAL){//ÕâÀï¾í»ıºËÈ¨ÖØ²ÎÊı¼Ó±¶£¿£¿
+            if(l.type == CONVOLUTIONAL){//è¿™é‡Œå·ç§¯æ ¸æƒé‡å‚æ•°åŠ å€ï¼Ÿï¼Ÿ
                 int num = l.n*l.c*l.size*l.size;
-                axpy_cpu(l.n, 1, l.biases, 1, out.biases, 1);//ÕâÀïÆäÊµÏë±í´ï out.biases = out.biases + 1*l.biases£¬ÇÒl=out
+                axpy_cpu(l.n, 1, l.biases, 1, out.biases, 1);//è¿™é‡Œå…¶å®æƒ³è¡¨è¾¾ out.biases = out.biases + 1*l.biasesï¼Œä¸”l=out
                 axpy_cpu(num, 1, l.weights, 1, out.weights, 1);
                 if(l.batch_normalize){
                     axpy_cpu(l.n, 1, l.scales, 1, out.scales, 1);
@@ -276,7 +276,7 @@ layer normalize_layer(layer l, int n)
     l.rolling_variance = calloc(n, sizeof(float));
     return l;
 }
-
+/* å°†ç½‘ç»œæƒé‡å®Œå…¨é‡ç½®ä¸º0ï¼Œé‡æ–°å­˜å‚¨*/
 void normalize_net(char *cfgfile, char *weightfile, char *outfile)
 {
     gpu_index = -1;
@@ -408,12 +408,11 @@ int main(int argc, char **argv)
         fprintf(stderr, "usage: %s <function>\n", argv[0]);
         return 0;
     }
-    //²é¿´ÊÇ·ñÓĞ"-i"×Ö¶Î£¬ÓĞ½«ÆäÖµ¸³¸øgpu_index 
+    //æŸ¥çœ‹æ˜¯å¦æœ‰"-i"å­—æ®µï¼Œæœ‰å°†å…¶å€¼èµ‹ç»™gpu_index 
     gpu_index = find_int_arg(argc, argv, "-i", 0);
     if(find_arg(argc, argv, "-nogpu")) {
         gpu_index = -1;
     }
-    printf("!!!argc is %d",argc );
 #ifndef GPU
     gpu_index = -1;
 #else
@@ -434,7 +433,6 @@ int main(int argc, char **argv)
         run_detector(argc, argv);
     } else if (0 == strcmp(argv[1], "detect")){
         float thresh = find_float_arg(argc, argv, "-thresh", .5);
-        printf("!!!argc is %d",argc );
         char *filename = (argc > 4) ? argv[4]: 0;
         char *outfile = find_char_arg(argc, argv, "-out", 0);
         int fullscreen = find_arg(argc, argv, "-fullscreen");

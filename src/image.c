@@ -726,7 +726,7 @@ image make_random_image(int w, int h, int c)
     }
     return out;
 }
-
+/* 根据whc构建一个空的image对象，并将数据指针指向data */
 image float_to_image(int w, int h, int c, float *data)
 {
     image out = make_empty_image(w,h,c);
