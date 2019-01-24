@@ -795,11 +795,17 @@ typedef struct load_args{
     tree *hierarchy;
 } load_args;
 
+/*
+** 图片检测标签数据：图片检测包括识别与定位，定位通过一个矩形框来实现，
+** 因此，对于图片检测，标签数据依次包括：物体类别id，矩形框中心点x,y坐标，
+** 矩形框宽高，以及矩形框四个角点的最小最大x,y坐标
+*/
 typedef struct{
-    int id;
-    float x,y,w,h;
-    float left, right, top, bottom;
+    int id;                             // 矩形框类别（即矩形框框起来的物体的标签/类别id）
+    float x,y,w,h;                      // 矩形中心点的x,y坐标，以及矩形宽高w,h（值不是真实的像素坐标，而是相对输入图片的宽高比例）
+    float left, right, top, bottom;     // 矩形四个角点的最大最小x,y坐标（值不是真实的像素坐标，而是相对输入图片的宽高比例）
 } box_label;
+
 
 
 network *load_network(char *cfg, char *weights, int clear);
