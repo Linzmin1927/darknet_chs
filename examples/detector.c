@@ -7,7 +7,8 @@ static int coco_ids[] = {1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,22,2
 ** 输入： datacfg     训练数据描述信息文件路径及名称
 **       cfgfile     神经网络结构配置文件路径及名称
 **       weightfile  预训练参数文件路径及名称
-**       gpus        GPU卡号集合（比如使用1块GPU，那么里面只含0元素，默认使用0卡号GPU；如果使用4块GPU，那么含有0,1,2,3四个元素；如果不使用GPU，那么为空指针）
+**       gpus        GPU卡号集合（比如使用1块GPU，那么里面只含0元素，默认使用0卡号GPU；
+                     如果使用4块GPU，那么含有0,1,2,3四个元素；如果不使用GPU，那么为空指针）
 **       ngpus       使用GPUS块数，使用一块GPU和不使用GPU时，nqpus都等于1
 **       clear       
 ** 说明：关于预训练参数文件weightfile，
@@ -16,8 +17,10 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 {
     // 读入数据配置文件信息
     list *options = read_data_cfg(datacfg);
-    // 从options找出训练图片路径信息，如果没找到，默认使用"data/train.list"路径下的图片信息（train.list含有标准的信息格式：<object-class> <x> <y> <width> <height>），
-    // 该文件可以由darknet提供的scripts/voc_label.py根据自行在网上下载的voc数据集生成，所以说是默认路径，其实也需要使用者自行调整，也可以任意命名，不一定要为train.list，
+    // 从options找出训练图片路径信息，如果没找到，默认使用"data/train.list"路径下的图片信息
+    //（train.list含有标准的信息格式：<object-class> <x> <y> <width> <height>），
+    // 该文件可以由darknet提供的scripts/voc_label.py根据自行在网上下载的voc数据集生成，所以说是默认路径，
+    // 其实也需要使用者自行调整，也可以任意命名，不一定要为train.list，
     // 甚至可以不用voc_label.py生成，可以自己不厌其烦的制作一个（当然规模应该是很小的，不然太累了。。。）
     // 读入后，train_images将含有训练图片中所有图片的标签以及定位信息
     char *train_images = option_find_str(options, "train", "data/train.list");
@@ -46,6 +49,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         // 设置当前活跃GPU卡号（即设置gpu_index=n，同时调用cudaSetDevice函数设置当前活跃的GPU卡号）
         cuda_set_device(gpus[i]);
 #endif
+        //有多少个GPU就生成多少个网络
         nets[i] = load_network(cfgfile, weightfile, clear);
         nets[i]->learning_rate *= ngpus;
     }
@@ -55,7 +59,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     int imgs = net->batch * net->subdivisions * ngpus;
     printf("Learning Rate: %g, Momentum: %g, Decay: %g\n", net->learning_rate, net->momentum, net->decay);
     data train, buffer;
-
+    //读取cfg文件中配置全局网络参数
     layer l = net->layers[net->n - 1];
 
     int classes = l.classes;
@@ -63,26 +67,28 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 
     list *plist = get_paths(train_images);
     //int N = plist->size;
+    //此处**paths类似python中list变量，每一个元素都是一张图片路径
     char **paths = (char **)list_to_array(plist);
 
     load_args args = get_base_args(net);
     args.coords = l.coords;
-    args.paths = paths;
-    args.n = imgs;
-    args.m = plist->size;
+    args.paths = paths;//图片路径列表
+    args.n = imgs;//一次训练的图片数量
+    args.m = plist->size;//图片数量
     args.classes = classes;
-    args.jitter = jitter;
-    args.num_boxes = l.max_boxes;
-    args.d = &buffer;
+    args.jitter = jitter;//抖动范围
+    args.num_boxes = l.max_boxes;//最大box数
+    args.d = &buffer;//输出图片数据缓存结构体
     args.type = DETECTION_DATA;
     //args.type = INSTANCE_DATA;
-    args.threads = 64;
+    args.threads = 64;//一次加载数据的线程数量
 
     pthread_t load_thread = load_data(args);
     double time;
     int count = 0;
     //while(i*imgs < N*120){
     while(get_current_batch(net) < net->max_batches){
+        //这里干嘛？？
         if(l.random && count++%10 == 0){
             printf("Resizing\n");
             int dim = (rand() % 10 + 10) * 32;
@@ -146,10 +152,11 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         loss = train_network(net, train);
 #endif
         if (avg_loss < 0) avg_loss = loss;
-        avg_loss = avg_loss*.9 + loss*.1;
+        avg_loss = avg_loss*.9 + loss*.1;//加权平均的loss
 
         i = get_current_batch(net);
         printf("%ld: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now()-time, i*imgs);
+       //没100批次自动保存一下
         if(i%100==0){
 #ifdef GPU
             if(ngpus != 1) sync_nets(nets, ngpus, 0);

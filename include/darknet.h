@@ -597,7 +597,7 @@ typedef struct network{
     float power;                    /**/
     int time_steps;                 /**/
     int step;                       /**/
-    int max_batches;                /**/
+    int max_batches;                /* 最大训练多少批次/所有数据最多可以有多少批次 */
     float *scales;                  /**/
     int   *steps;                   /**/
     int num_steps;                  /**/

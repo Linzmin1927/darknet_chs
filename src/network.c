@@ -383,7 +383,7 @@ float train_network(network *net, data d)
     // 因此恒有d.X.rows % net.batch == 0，且下面的n就等于net.subdivision
     // （可以参看detector.c中的train_detector()），因此对于图像检测而言，
     // 下面三句略有冗余，但对于其他种情况（比如其他应用，非图像检测甚至非视觉情况）,不清楚
-    assert(d.X.rows % net->batch == 0);
+    assert(d.X.rows % net->batch == 0);//X.rows表示这个data中包含的所有图片数量
     int batch = net->batch;
     int n = d.X.rows / batch;
 

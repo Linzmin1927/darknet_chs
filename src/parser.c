@@ -45,12 +45,12 @@ typedef struct{
 list *read_cfg(char *filename);
 
 /*
-**  ½«ÍøÂçµÄÀà±ğ×ªÎªdarknetÖĞ¶¨ÒåµÄ±ê×¼Àà±ğ£¨Ã¶¾ÙÀàĞÍ£¬ÔÚlayer.hÖĞ¶¨Òå£©
-**  .cfgÍøÂç½á¹¹²ÎÊıÅäÖÃÎÄ¼şÖĞ£¬ÓĞ¸÷ÖÖÍøÂç²ãÀà±ğÃû³Æ£¬ÖîÈç[maxpool],[region]µÈµÈ£¬
-**  ´Ëº¯Êı¾ÍÊÇÍ¨¹ı±È½Ï×Ö·û´®£¨C·ç¸ñ×Ö·ûÊı×é£©À´½âÎöÍøÂç²ãÀà±ğ£¬Êä³ödarknetÖĞ¶¨ÒåµÄ±ê×¼ÍøÂçÀà±ğÃû³Æ£¨Ã¶¾ÙÀàĞÍ£©
-**  ÊäÈë£ºtype     ´ÓÉñ¾­ÍøÂç½á¹¹ÅäÖÃÎÄ¼ş£¨.cfg£©ÖĞ¶ÁÈëµÄ¹ØÓÚÍøÂçÀà±ğµÄ×Ö·ûÊı×é£¨Èçtype=[convolutional]£©
-**  Êä³ö£ºLAYER_TYPE   Ã¶¾ÙÀàĞÍ£¬ÊÇlayer.hÖĞ¶¨ÒåµÄËùÓĞµÄÍøÂç²ãÀà±ğÖ®Ò»£¬Èç¹ûÓöµ½Î´ÄÜÊ¶±ğµÄ×Ö·ûÊı×é£¬Ôò·µ»ØBLANK
-**  ËµÃ÷£ºÓĞĞ©ÍøÂç²ã¿ÉÒÔÓĞÁ½ÖÖÃû³Æ£¨ËõĞ´Ö®ÀàµÄ£©
+**  å°†ç½‘ç»œçš„ç±»åˆ«è½¬ä¸ºdarknetä¸­å®šä¹‰çš„æ ‡å‡†ç±»åˆ«ï¼ˆæšä¸¾ç±»å‹ï¼Œåœ¨layer.hä¸­å®šä¹‰ï¼‰
+**  .cfgç½‘ç»œç»“æ„å‚æ•°é…ç½®æ–‡ä»¶ä¸­ï¼Œæœ‰å„ç§ç½‘ç»œå±‚ç±»åˆ«åç§°ï¼Œè¯¸å¦‚[maxpool],[region]ç­‰ç­‰ï¼Œ
+**  æ­¤å‡½æ•°å°±æ˜¯é€šè¿‡æ¯”è¾ƒå­—ç¬¦ä¸²ï¼ˆCé£æ ¼å­—ç¬¦æ•°ç»„ï¼‰æ¥è§£æç½‘ç»œå±‚ç±»åˆ«ï¼Œè¾“å‡ºdarknetä¸­å®šä¹‰çš„æ ‡å‡†ç½‘ç»œç±»åˆ«åç§°ï¼ˆæšä¸¾ç±»å‹ï¼‰
+**  è¾“å…¥ï¼štype     ä»ç¥ç»ç½‘ç»œç»“æ„é…ç½®æ–‡ä»¶ï¼ˆ.cfgï¼‰ä¸­è¯»å…¥çš„å…³äºç½‘ç»œç±»åˆ«çš„å­—ç¬¦æ•°ç»„ï¼ˆå¦‚type=[convolutional]ï¼‰
+**  è¾“å‡ºï¼šLAYER_TYPE   æšä¸¾ç±»å‹ï¼Œæ˜¯layer.hä¸­å®šä¹‰çš„æ‰€æœ‰çš„ç½‘ç»œå±‚ç±»åˆ«ä¹‹ä¸€ï¼Œå¦‚æœé‡åˆ°æœªèƒ½è¯†åˆ«çš„å­—ç¬¦æ•°ç»„ï¼Œåˆ™è¿”å›BLANK
+**  è¯´æ˜ï¼šæœ‰äº›ç½‘ç»œå±‚å¯ä»¥æœ‰ä¸¤ç§åç§°ï¼ˆç¼©å†™ä¹‹ç±»çš„ï¼‰
 */
 LAYER_TYPE string_to_layer_type(char * type)
 {
@@ -91,46 +91,46 @@ LAYER_TYPE string_to_layer_type(char * type)
             || strcmp(type, "[softmax]")==0) return SOFTMAX;
     if (strcmp(type, "[route]")==0) return ROUTE;
     if (strcmp(type, "[upsample]")==0) return UPSAMPLE;
-    // Èç¹ûÃ»ÓĞÒ»¸öÆ¥ÅäÉÏ£¬ËµÃ÷ÅäÖÃÎÄ¼şÖĞ´æÔÚ²»ÄÜÊ¶±ğµÄÍøÂç²ãÃû³Æ£¬
-    // ·µ»ØBLANK£¨ÕâÊ±Ó¦¸ÃÈ¥¼ì²éÏÂÅäÖÃÎÄ¼ş£¬¿´¿´ÊÇ·ñÓĞÆ´Ğ´´íÎó£©
+    // å¦‚æœæ²¡æœ‰ä¸€ä¸ªåŒ¹é…ä¸Šï¼Œè¯´æ˜é…ç½®æ–‡ä»¶ä¸­å­˜åœ¨ä¸èƒ½è¯†åˆ«çš„ç½‘ç»œå±‚åç§°ï¼Œ
+    // è¿”å›BLANKï¼ˆè¿™æ—¶åº”è¯¥å»æ£€æŸ¥ä¸‹é…ç½®æ–‡ä»¶ï¼Œçœ‹çœ‹æ˜¯å¦æœ‰æ‹¼å†™é”™è¯¯ï¼‰
     return BLANK;
 }
 
 /*
-** ÊÍ·ÅsetctionÄÚ´æ£¬section½á¹¹Ìåº¬ÓĞÁ½¸öÖ¸ÕëÔªËØ£ºtypeºÍoptions£¬Á½¸ö¶¼ÊÇ¶¯Ì¬·ÖÅäÄÚ´æµÄ£¬
-** kvp½á¹¹Ìå°üº¬keyºÍvalÁ½¸öÖ¸ÕëÔªËØ£¬ÔÚoption_list.cÖĞµÄread_option()º¯ÊıÖĞ£¬
-** ¿ÉÒÔ¿´µ½val²¢²»ÊÇ¶¯Ì¬·ÖÅäµÄÄÚ´æ,¶øÔÚÉÏÒ»¼¶º¯Êıread_cfg()ÖĞ¿ÉÒÔËİÔ´¿´µ½keyÊÇ¶¯Ì¬·ÖÅäµÄÄÚ´æ£¬
-** Òò´Ë£¬keyºÍval£¬Ö»ÄÜÓÃfree()ÊÍ·ÅkeyµÄÄÚ´æ£¬¶øvalÊÇÍòÍò²»ÄÜ¹»µÄ¡£
-** ÊÍ·ÅË³Ğò£ºÔÚÖ±½ÓÊÍ·ÅsectionÊµÀıÖ®Ç°£¬ĞèÒªÊ×ÏÈÊÍ·ÅÆä×ÓÔªËØµÄÄÚ´æ£¬Ö±½ÓÊÍ·ÅsectionÊµÀı£¬
-** Ö»»áÊÍ·Åtype,optionsÖ¸Õë±äÁ¿±¾ÉíÕ¼¾İµÄÄÚ´æ£¨×¢Òâ£¬ÔÚdarknetÖĞ£¬ËùÓĞµÄsection±¾Éí¶¼ÊÇ¶¯Ì¬·ÖÅäÄÚ´æµÄ£© £¬
-** ÕâÖÖÇ¶Ì×ÄÚ´æµÄÊÍ·Å·Ç³£ÖµµÃÑ§Ï°£¬×¢Òâ²»¹ÜÊ²Ã´Êı¾İ£¬ÈçÈô¸ÃÀàĞÍÊı¾İ»¹ÓĞ×ÓÔªËØ£¬ÄÇÃ´ÏÈÊÍ·Å×ÓÔªËØµÄÄÚ´æ£¬ÔÙÄÜÖ±½ÓÊÍ·ÅÆä±¾ÉíµÄÄÚ´æ
+** é‡Šæ”¾setctionå†…å­˜ï¼Œsectionç»“æ„ä½“å«æœ‰ä¸¤ä¸ªæŒ‡é’ˆå…ƒç´ ï¼štypeå’Œoptionsï¼Œä¸¤ä¸ªéƒ½æ˜¯åŠ¨æ€åˆ†é…å†…å­˜çš„ï¼Œ
+** kvpç»“æ„ä½“åŒ…å«keyå’Œvalä¸¤ä¸ªæŒ‡é’ˆå…ƒç´ ï¼Œåœ¨option_list.cä¸­çš„read_option()å‡½æ•°ä¸­ï¼Œ
+** å¯ä»¥çœ‹åˆ°valå¹¶ä¸æ˜¯åŠ¨æ€åˆ†é…çš„å†…å­˜,è€Œåœ¨ä¸Šä¸€çº§å‡½æ•°read_cfg()ä¸­å¯ä»¥æº¯æºçœ‹åˆ°keyæ˜¯åŠ¨æ€åˆ†é…çš„å†…å­˜ï¼Œ
+** å› æ­¤ï¼Œkeyå’Œvalï¼Œåªèƒ½ç”¨free()é‡Šæ”¾keyçš„å†…å­˜ï¼Œè€Œvalæ˜¯ä¸‡ä¸‡ä¸èƒ½å¤Ÿçš„ã€‚
+** é‡Šæ”¾é¡ºåºï¼šåœ¨ç›´æ¥é‡Šæ”¾sectionå®ä¾‹ä¹‹å‰ï¼Œéœ€è¦é¦–å…ˆé‡Šæ”¾å…¶å­å…ƒç´ çš„å†…å­˜ï¼Œç›´æ¥é‡Šæ”¾sectionå®ä¾‹ï¼Œ
+** åªä¼šé‡Šæ”¾type,optionsæŒ‡é’ˆå˜é‡æœ¬èº«å æ®çš„å†…å­˜ï¼ˆæ³¨æ„ï¼Œåœ¨darknetä¸­ï¼Œæ‰€æœ‰çš„sectionæœ¬èº«éƒ½æ˜¯åŠ¨æ€åˆ†é…å†…å­˜çš„ï¼‰ ï¼Œ
+** è¿™ç§åµŒå¥—å†…å­˜çš„é‡Šæ”¾éå¸¸å€¼å¾—å­¦ä¹ ï¼Œæ³¨æ„ä¸ç®¡ä»€ä¹ˆæ•°æ®ï¼Œå¦‚è‹¥è¯¥ç±»å‹æ•°æ®è¿˜æœ‰å­å…ƒç´ ï¼Œé‚£ä¹ˆå…ˆé‡Šæ”¾å­å…ƒç´ çš„å†…å­˜ï¼Œå†èƒ½ç›´æ¥é‡Šæ”¾å…¶æœ¬èº«çš„å†…å­˜
 **
 */
 void free_section(section *s)
 {
-    // ÊÍ·ÅsµÄtypeÖ¸ÕëÄÚ´æ
+    // é‡Šæ”¾sçš„typeæŒ‡é’ˆå†…å­˜
     free(s->type);
-    // sµÄÁíÒ»¸öÔªËØoptionsÊÇÒ»¸ölist£¬Ç¶Ì×ÓĞ¶à¸ö½Úµãnode£¬Ã¿¸önode´æ´¢Ò»ÌõĞÅÏ¢£¬ĞèÒªÖğÌõÊÍ·ÅÄÚ´æ
-    // »ñÈ¡s->optionsµÄµÚÒ»¸önode²¢ÊÍ·ÅÆäÄÚ´æ
+    // sçš„å¦ä¸€ä¸ªå…ƒç´ optionsæ˜¯ä¸€ä¸ªlistï¼ŒåµŒå¥—æœ‰å¤šä¸ªèŠ‚ç‚¹nodeï¼Œæ¯ä¸ªnodeå­˜å‚¨ä¸€æ¡ä¿¡æ¯ï¼Œéœ€è¦é€æ¡é‡Šæ”¾å†…å­˜
+    // è·å–s->optionsçš„ç¬¬ä¸€ä¸ªnodeå¹¶é‡Šæ”¾å…¶å†…å­˜
     node *n = s->options->front;
     while(n){
-        // »ñÈ¡nodeÖĞµÄval
+        // è·å–nodeä¸­çš„val
         kvp *pair = (kvp *)n->val;
-        // ÊÍ·Åkey
+        // é‡Šæ”¾key
         free(pair->key);
-        // ´Ë´¦¾ö²»ÄÜ£ºfree(pair->val);
-        // ÔÙÖ±½ÓÊÍ·Åpair
+        // æ­¤å¤„å†³ä¸èƒ½ï¼šfree(pair->val);
+        // å†ç›´æ¥é‡Šæ”¾pair
         free(pair);
-        // ÔÚÖ±½ÓÊÍ·ÅnÖ±½Ó£¬ÏÈ»ñÈ¡ÏÂÒ»¸ö½ÚµãµÄÖ¸Õë£¬²»È»ÏÂÒ»¸ö½ÚµãµÄÖ¸Õë½«ÎŞ´Ó»ñÈ¡
+        // åœ¨ç›´æ¥é‡Šæ”¾nç›´æ¥ï¼Œå…ˆè·å–ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆï¼Œä¸ç„¶ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆå°†æ— ä»è·å–
         node *next = n->next;
-        // Ö±½ÓÊÍ·Ån
+        // ç›´æ¥é‡Šæ”¾n
         free(n);
-        // ÁînµÈÓÚÏÂÒ»¸ö½ÚµãµÄÖ¸Õë£¬ÔÚÏÂ´ÎÑ­»·ÖĞÊÍ·Å
+        // ä»¤nç­‰äºä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆï¼Œåœ¨ä¸‹æ¬¡å¾ªç¯ä¸­é‡Šæ”¾
         n = next;
     }
-    // Ö±½ÓÊÍ·Åoptions
+    // ç›´æ¥é‡Šæ”¾options
     free(s->options);
-    // ×îÖÕÖ±½ÓÊÍ·Ås
+    // æœ€ç»ˆç›´æ¥é‡Šæ”¾s
     free(s);
 }
 
@@ -184,13 +184,13 @@ local_layer parse_local(list *options, size_params params)
 
 layer parse_deconvolutional(list *options, size_params params)
 {
-    // »ñÈ¡¾í»ıºË¸öÊı£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª1
+    // è·å–å·ç§¯æ ¸ä¸ªæ•°ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º1
     int n = option_find_int(options, "filters",1);
-    // »ñÈ¡¾í»ıºË³ß´ç£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª1
+    // è·å–å·ç§¯æ ¸å°ºå¯¸ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º1
     int size = option_find_int(options, "size",1);
-    // »ñÈ¡¿ç¶È£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª1
+    // è·å–è·¨åº¦ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º1
     int stride = option_find_int(options, "stride",1);
-    // »ñÈ¡¸Ã²ãÊ¹ÓÃµÄ¼¤»îº¯ÊıÀàĞÍ£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÊ¹ÓÃlogistic¼¤»îº¯Êı
+    // è·å–è¯¥å±‚ä½¿ç”¨çš„æ¿€æ´»å‡½æ•°ç±»å‹ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™ä½¿ç”¨logisticæ¿€æ´»å‡½æ•°
     char *activation_s = option_find_str(options, "activation", "logistic");
     ACTIVATION activation = get_activation(activation_s);
 
@@ -213,41 +213,41 @@ layer parse_deconvolutional(list *options, size_params params)
 
 convolutional_layer parse_convolutional(list *options, size_params params)
 {
-    // »ñÈ¡¾í»ıºË¸öÊı£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª1
+    // è·å–å·ç§¯æ ¸ä¸ªæ•°ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º1
     int n = option_find_int(options, "filters",1);
-    // »ñÈ¡¾í»ıºË³ß´ç£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª1
+    // è·å–å·ç§¯æ ¸å°ºå¯¸ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º1
     int size = option_find_int(options, "size",1);
-    // »ñÈ¡¿ç¶È£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª1
+    // è·å–è·¨åº¦ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º1
     int stride = option_find_int(options, "stride",1);
-    // ÊÇ·ñÔÚÊäÈëÍ¼ÏñËÄÖÜ²¹0,ÈôĞèÒª²¹0,ÖµÎª1£»ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª0,²»²¹0
+    // æ˜¯å¦åœ¨è¾“å…¥å›¾åƒå››å‘¨è¡¥0,è‹¥éœ€è¦è¡¥0,å€¼ä¸º1ï¼›è‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º0,ä¸è¡¥0
     int pad = option_find_int_quiet(options, "pad",0);
-    // ËÄÖÜ²¹0µÄ³¤¶È£¬ÏÂÃæÕâ¾ä´úÂë¶àÓà£¬ÓĞif(pad)Õâ¾ä¾Í¹»ÁË
+    // å››å‘¨è¡¥0çš„é•¿åº¦ï¼Œä¸‹é¢è¿™å¥ä»£ç å¤šä½™ï¼Œæœ‰if(pad)è¿™å¥å°±å¤Ÿäº†
     int padding = option_find_int_quiet(options, "padding",0);
     int groups = option_find_int_quiet(options, "groups", 1);
-    if(pad) padding = size/2; // ÈçÈôĞèÒª²¹0,²¹0³¤¶ÈÎª¾í»ıºËÒ»°ë³¤¶È£¨ÍùÏÂÈ¡Õû£©£¬Õâ¶ÔÓ¦same²¹0²ßÂÔ
+    if(pad) padding = size/2; // å¦‚è‹¥éœ€è¦è¡¥0,è¡¥0é•¿åº¦ä¸ºå·ç§¯æ ¸ä¸€åŠé•¿åº¦ï¼ˆå¾€ä¸‹å–æ•´ï¼‰ï¼Œè¿™å¯¹åº”sameè¡¥0ç­–ç•¥
 
-    // »ñÈ¡¸Ã²ãÊ¹ÓÃµÄ¼¤»îº¯ÊıÀàĞÍ£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÊ¹ÓÃlogistic¼¤»îº¯Êı
+    // è·å–è¯¥å±‚ä½¿ç”¨çš„æ¿€æ´»å‡½æ•°ç±»å‹ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™ä½¿ç”¨logisticæ¿€æ´»å‡½æ•°
     char *activation_s = option_find_str(options, "activation", "logistic");
     ACTIVATION activation = get_activation(activation_s);
 
-    // h,w,cÎªÉÏÒ»²ãµÄÊä³öµÄ¸ß¶È/¿í¶È/Í¨µÀÊı£¨µÚÒ»²ãµÄÔòÊÇÊäÈëµÄÍ¼Æ¬µÄ³ß´çÓëÍ¨µÀÊı£¬Ò²¼´net.h,net.w,net.c£©£¬batchËùÓĞ²ã¶¼Ò»Ñù£¨²»±ä£©£¬
-    // params.h,params.w,params.c¼°params.inputsÔÚ¹¹½¨Ã¿Ò»²ãÖ®ºó¶¼»á¸üĞÂÎªÉÏÒ»²ãÏàÓ¦µÄÊä³ö²ÎÊı£¨²Î¼ûparse_network_cfg()£©
+    // h,w,cä¸ºä¸Šä¸€å±‚çš„è¾“å‡ºçš„é«˜åº¦/å®½åº¦/é€šé“æ•°ï¼ˆç¬¬ä¸€å±‚çš„åˆ™æ˜¯è¾“å…¥çš„å›¾ç‰‡çš„å°ºå¯¸ä¸é€šé“æ•°ï¼Œä¹Ÿå³net.h,net.w,net.cï¼‰ï¼Œbatchæ‰€æœ‰å±‚éƒ½ä¸€æ ·ï¼ˆä¸å˜ï¼‰ï¼Œ
+    // params.h,params.w,params.cåŠparams.inputsåœ¨æ„å»ºæ¯ä¸€å±‚ä¹‹åéƒ½ä¼šæ›´æ–°ä¸ºä¸Šä¸€å±‚ç›¸åº”çš„è¾“å‡ºå‚æ•°ï¼ˆå‚è§parse_network_cfg()ï¼‰
     int batch,h,w,c;
     h = params.h;
     w = params.w;
     c = params.c;
     batch=params.batch;
 
-    // Èç¹ûÕâÈı¸öÊı´æÔÚ0Öµ£¬ÄÇ¿Ï¶¨ÓĞÎÊÌâÁË£¬ÒòÎªÉÏÒ»²ã£¨»òÕßÊäÈë£©±ØĞë²»Îª0
+    // å¦‚æœè¿™ä¸‰ä¸ªæ•°å­˜åœ¨0å€¼ï¼Œé‚£è‚¯å®šæœ‰é—®é¢˜äº†ï¼Œå› ä¸ºä¸Šä¸€å±‚ï¼ˆæˆ–è€…è¾“å…¥ï¼‰å¿…é¡»ä¸ä¸º0
     if(!(h && w && c)) error("Layer before convolutional layer must output image.");
-    // ÊÇ·ñ½øĞĞ¹æ·¶»¯£¬1±íÊ¾½øĞĞ¹æ·¶»¯£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª0,¼´Ä¬ÈÏ²»½øĞĞ¹æ·¶»¯
+    // æ˜¯å¦è¿›è¡Œè§„èŒƒåŒ–ï¼Œ1è¡¨ç¤ºè¿›è¡Œè§„èŒƒåŒ–ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º0,å³é»˜è®¤ä¸è¿›è¡Œè§„èŒƒåŒ–
     int batch_normalize = option_find_int_quiet(options, "batch_normalize", 0);
-    // ÊÇ·ñ¶ÔÈ¨ÖØ½øĞĞ¶şÖµ»¯£¬1±íÊ¾½øĞĞ¶şÖµ»¯£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª0,¼´Ä¬ÈÏ²»½øĞĞ¶şÖµ»¯
+    // æ˜¯å¦å¯¹æƒé‡è¿›è¡ŒäºŒå€¼åŒ–ï¼Œ1è¡¨ç¤ºè¿›è¡ŒäºŒå€¼åŒ–ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º0,å³é»˜è®¤ä¸è¿›è¡ŒäºŒå€¼åŒ–
     int binary = option_find_int_quiet(options, "binary", 0);
-    // ÊÇ·ñ¶ÔÈ¨ÖØÒÔ¼°ÊäÈë½øĞĞ¶şÖµ»¯£¬1±íÊ¾ÊÇ£¬ÈôÅäÖÃÎÄ¼şÖĞÃ»ÓĞÖ¸¶¨£¬ÔòÉèÎª0,¼´Ä¬ÈÏ²»½øĞĞ¶şÖµ»¯
+    // æ˜¯å¦å¯¹æƒé‡ä»¥åŠè¾“å…¥è¿›è¡ŒäºŒå€¼åŒ–ï¼Œ1è¡¨ç¤ºæ˜¯ï¼Œè‹¥é…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰æŒ‡å®šï¼Œåˆ™è®¾ä¸º0,å³é»˜è®¤ä¸è¿›è¡ŒäºŒå€¼åŒ–
     int xnor = option_find_int_quiet(options, "xnor", 0);
 
-    //ÒÔÉÏÒÑ¾­»ñÈ¡µ½ÁË¹¹½¨Ò»²ã¾í»ı²ãµÄËùÓĞ²ÎÊı£¬ÏÖÔÚ¿ÉÒÔÓÃÕâĞ©²ÎÊı¹¹½¨¾í»ı²ãÁË
+    //ä»¥ä¸Šå·²ç»è·å–åˆ°äº†æ„å»ºä¸€å±‚å·ç§¯å±‚çš„æ‰€æœ‰å‚æ•°ï¼Œç°åœ¨å¯ä»¥ç”¨è¿™äº›å‚æ•°æ„å»ºå·ç§¯å±‚äº†
     convolutional_layer layer = make_convolutional_layer(batch,h,w,c,n,groups,size,stride,padding,activation, batch_normalize, binary, xnor, params.net->adam);
     layer.flipped = option_find_int_quiet(options, "flipped", 0);
     layer.dot = option_find_float_quiet(options, "dot", 0);
@@ -320,11 +320,11 @@ layer parse_softmax(list *options, size_params params)
 {
     int groups = option_find_int_quiet(options, "groups",1);
     layer l = make_softmax_layer(params.batch, params.inputs, groups);
-    // softmaxµÄÎÂ¶È²ÎÊı£¬ÎÂ¶È²ÎÊı¶ÔÓÚsoftmax»¹ÊÇ±È½ÏÖØÒªµÄ£¬µ±temperatureºÜ´óÊ±£¬¼´Ç÷ÓÚÕıÎŞÇîÊ±£¬ËùÓĞµÄ¼¤»îÖµ¶ÔÓ¦µÄ¼¤»î¸ÅÂÊÇ÷½üÓÚÏàÍ¬
-    // £¨¼¤»î¸ÅÂÊ²îÒìĞÔ½ÏĞ¡£©£»¶øµ±temperatureºÜµÍÊ±£¬¼´Ç÷ÓÚ0Ê±£¬²»Í¬µÄ¼¤»îÖµ¶ÔÓ¦µÄ¼¤»î¸ÅÂÊ²îÒìÒ²¾ÍÔ½´ó¡£
-    // ¿ÉÒÔ²Î¿¼²©¿Í£ºhttp://www.cnblogs.com/maybe2030/p/5678387.html?utm_source=tuicool&utm_medium=referral
-    // »òÕßËÑË÷softmax with temperature£¬Ó¦¸Ã»áÓĞ±È½Ï¶àµÄËÑË÷½á¹û
-    // ¸Ã²ÎÊıµÄÖµÓÉÍøÂçÅäÖÃÎÄ¼şÖ¸¶¨£¨±ÈÈçcifar.test.cfg£©£¬ÈçÎ´Ö¸¶¨£¬ÔòÊ¹ÓÃÄ¬ÈÏÖµ1
+    // softmaxçš„æ¸©åº¦å‚æ•°ï¼Œæ¸©åº¦å‚æ•°å¯¹äºsoftmaxè¿˜æ˜¯æ¯”è¾ƒé‡è¦çš„ï¼Œå½“temperatureå¾ˆå¤§æ—¶ï¼Œå³è¶‹äºæ­£æ— ç©·æ—¶ï¼Œæ‰€æœ‰çš„æ¿€æ´»å€¼å¯¹åº”çš„æ¿€æ´»æ¦‚ç‡è¶‹è¿‘äºç›¸åŒ
+    // ï¼ˆæ¿€æ´»æ¦‚ç‡å·®å¼‚æ€§è¾ƒå°ï¼‰ï¼›è€Œå½“temperatureå¾ˆä½æ—¶ï¼Œå³è¶‹äº0æ—¶ï¼Œä¸åŒçš„æ¿€æ´»å€¼å¯¹åº”çš„æ¿€æ´»æ¦‚ç‡å·®å¼‚ä¹Ÿå°±è¶Šå¤§ã€‚
+    // å¯ä»¥å‚è€ƒåšå®¢ï¼šhttp://www.cnblogs.com/maybe2030/p/5678387.html?utm_source=tuicool&utm_medium=referral
+    // æˆ–è€…æœç´¢softmax with temperatureï¼Œåº”è¯¥ä¼šæœ‰æ¯”è¾ƒå¤šçš„æœç´¢ç»“æœ
+    // è¯¥å‚æ•°çš„å€¼ç”±ç½‘ç»œé…ç½®æ–‡ä»¶æŒ‡å®šï¼ˆæ¯”å¦‚cifar.test.cfgï¼‰ï¼Œå¦‚æœªæŒ‡å®šï¼Œåˆ™ä½¿ç”¨é»˜è®¤å€¼1
     l.temperature = option_find_float_quiet(options, "temperature", 1);
     char *tree_file = option_find_str(options, "tree", 0);
     if (tree_file) l.softmax_tree = read_tree(tree_file);
@@ -692,7 +692,7 @@ route_layer parse_route(list *options, size_params params, network *net)
 
     return layer;
 }
-//Ñ§Ï°ÂÊ²ßÂÔ
+//å­¦ä¹ ç‡ç­–ç•¥
 learning_rate_policy get_policy(char *s)
 {
     if (strcmp(s, "random")==0) return RANDOM;
@@ -705,17 +705,17 @@ learning_rate_policy get_policy(char *s)
     fprintf(stderr, "Couldn't find policy %s, going with constant\n", s);
     return CONSTANT;
 }
-//²é¿´[net]»ò[network]ÖĞ³¬²ÎÊıÁĞ±í£¬²¢³õÊ¼»¯ÍøÂç³¬²ÎÊı½á¹¹Ìå
+//æŸ¥çœ‹[net]æˆ–[network]ä¸­è¶…å‚æ•°åˆ—è¡¨ï¼Œå¹¶åˆå§‹åŒ–ç½‘ç»œè¶…å‚æ•°ç»“æ„ä½“
 void parse_net_options(list *options, network *net)
 {
-    // ´Ó.cfgÍøÂç²ÎÊıÅäÖÃÎÄ¼şÖĞ¶ÁÈëÒ»Ğ©Í¨ÓÃµÄÍøÂçÅäÖÃ²ÎÊı£¬option_find_int()ÒÔ¼°option_find_float()º¯ÊıµÄµÚÈı¸ö²ÎÊı¶¼ÊÇÄ¬ÈÏÖµ£¨Èç¹ûÅäÖÃÎÄ¼şÖĞÃ»ÓĞÉèÖÃ¸Ã²ÎÊıµÄÖµ£¬¾ÍÈ¡Ä¬ÈÏÖµ£©
-    // ÉÔÎ¢ÌáÒ»ÏÂbatchÕâ¸ö²ÎÊı£¬Ê×ÏÈ¶ÁÈëµÄnet->batchÊÇÕæÊµbatchÖµ£¬¼´Ã¿¸öbatchÖĞ°üº¬µÄÕÕÆ¬ÕÅÊı£¬¶øºóÓÖ¶ÁÈëÒ»¸ösubdivisions²ÎÊı£¬Õâ¸ö²ÎÊıÔİÊ±»¹Ã»¸ã¶®ÓĞÊ²Ã´ÓÃ£¬
-    // ×ÜÖ®×îÖÕµÄnet->batch = net->batch / net->subdivisions
+    // ä».cfgç½‘ç»œå‚æ•°é…ç½®æ–‡ä»¶ä¸­è¯»å…¥ä¸€äº›é€šç”¨çš„ç½‘ç»œé…ç½®å‚æ•°ï¼Œoption_find_int()ä»¥åŠoption_find_float()å‡½æ•°çš„ç¬¬ä¸‰ä¸ªå‚æ•°éƒ½æ˜¯é»˜è®¤å€¼ï¼ˆå¦‚æœé…ç½®æ–‡ä»¶ä¸­æ²¡æœ‰è®¾ç½®è¯¥å‚æ•°çš„å€¼ï¼Œå°±å–é»˜è®¤å€¼ï¼‰
+    // ç¨å¾®æä¸€ä¸‹batchè¿™ä¸ªå‚æ•°ï¼Œé¦–å…ˆè¯»å…¥çš„net->batchæ˜¯çœŸå®batchå€¼ï¼Œå³æ¯ä¸ªbatchä¸­åŒ…å«çš„ç…§ç‰‡å¼ æ•°ï¼Œè€Œååˆè¯»å…¥ä¸€ä¸ªsubdivisionså‚æ•°ï¼Œè¿™ä¸ªå‚æ•°æš‚æ—¶è¿˜æ²¡ææ‡‚æœ‰ä»€ä¹ˆç”¨ï¼Œ
+    // æ€»ä¹‹æœ€ç»ˆçš„net->batch = net->batch / net->subdivisions
     net->batch = option_find_int(options, "batch",1);
     net->learning_rate = option_find_float(options, "learning_rate", .001);
     net->momentum = option_find_float(options, "momentum", .9);
     net->decay = option_find_float(options, "decay", .0001);
-    int subdivs = option_find_int(options, "subdivisions",1);//¶à»úor¶àGPU??
+    int subdivs = option_find_int(options, "subdivisions",1);//å¤šæœºorå¤šGPU??
     net->time_steps = option_find_int_quiet(options, "time_steps",1);
     net->notruth = option_find_int_quiet(options, "notruth",0);
     net->batch /= subdivs;
@@ -723,43 +723,43 @@ void parse_net_options(list *options, network *net)
     net->subdivisions = subdivs;
     net->random = option_find_int_quiet(options, "random", 0);
 
-    net->adam = option_find_int_quiet(options, "adam", 0);//Ä¬ÈÏ²»ÆôÓÃadam?
+    net->adam = option_find_int_quiet(options, "adam", 0);//é»˜è®¤ä¸å¯ç”¨adam?
     if(net->adam){
         net->B1 = option_find_float(options, "B1", .9);
         net->B2 = option_find_float(options, "B2", .999);
         net->eps = option_find_float(options, "eps", .0000001);
     }
-    //ÊäÈëÍ¼Ïñ w h c Ä¬ÈÏÎª0£¿±íÊ¾±ØĞëÖ¸¶¨£¿
+    //è¾“å…¥å›¾åƒ w h c é»˜è®¤ä¸º0ï¼Ÿè¡¨ç¤ºå¿…é¡»æŒ‡å®šï¼Ÿ
     net->h = option_find_int_quiet(options, "height",0);
     net->w = option_find_int_quiet(options, "width",0);
     net->c = option_find_int_quiet(options, "channels",0);
 
-    // Ò»ÕÅÊäÈëÍ¼Æ¬µÄÔªËØ¸öÊı£¬Èç¹ûÍøÂçÅäÖÃÎÄ¼şÃ»ÓĞÖ¸¶¨£¬ÔòÄ¬ÈÏÖµÎªnet->h * net->w * net->c
+    // ä¸€å¼ è¾“å…¥å›¾ç‰‡çš„å…ƒç´ ä¸ªæ•°ï¼Œå¦‚æœç½‘ç»œé…ç½®æ–‡ä»¶æ²¡æœ‰æŒ‡å®šï¼Œåˆ™é»˜è®¤å€¼ä¸ºnet->h * net->w * net->c
     net->inputs = option_find_int_quiet(options, "inputs", net->h * net->w * net->c);
     net->max_crop = option_find_int_quiet(options, "max_crop",net->w*2);
     net->min_crop = option_find_int_quiet(options, "min_crop",net->w);
-    net->max_ratio = option_find_float_quiet(options, "max_ratio", (float) net->max_crop / net->w);//±äĞÎ½Ç¶È·¶Î§£¿
+    net->max_ratio = option_find_float_quiet(options, "max_ratio", (float) net->max_crop / net->w);//å˜å½¢è§’åº¦èŒƒå›´ï¼Ÿ
     net->min_ratio = option_find_float_quiet(options, "min_ratio", (float) net->min_crop / net->w);
 
     net->center = option_find_int_quiet(options, "center",0);
     net->clip = option_find_float_quiet(options, "clip", 0);
 
     net->angle = option_find_float_quiet(options, "angle", 0);
-    net->aspect = option_find_float_quiet(options, "aspect", 1);//·½Ïò
-    net->saturation = option_find_float_quiet(options, "saturation", 1);//±¥ºÍ¶È
-    net->exposure = option_find_float_quiet(options, "exposure", 1);//ÆØ¹â¶È
-    net->hue = option_find_float_quiet(options, "hue", 0);//É«²Ê
-    //³¤¿í¸ß±ØĞëÖ¸¶¨
+    net->aspect = option_find_float_quiet(options, "aspect", 1);//æ–¹å‘
+    net->saturation = option_find_float_quiet(options, "saturation", 1);//é¥±å’Œåº¦
+    net->exposure = option_find_float_quiet(options, "exposure", 1);//æ›å…‰åº¦
+    net->hue = option_find_float_quiet(options, "hue", 0);//è‰²å½©
+    //é•¿å®½é«˜å¿…é¡»æŒ‡å®š
     if(!net->inputs && !(net->h && net->w && net->c)) error("No input parameters supplied");
 
-    char *policy_s = option_find_str(options, "policy", "constant");//Ñ§Ï°ÂÊ²ßÂÔ?
+    char *policy_s = option_find_str(options, "policy", "constant");//å­¦ä¹ ç‡ç­–ç•¥?
     net->policy = get_policy(policy_s);
-    net->burn_in = option_find_int_quiet(options, "burn_in", 0);//ÀÏ»¯£¿£¿
-    net->power = option_find_float_quiet(options, "power", 4);//4´Î·½£¿£¿
+    net->burn_in = option_find_int_quiet(options, "burn_in", 0);//è€åŒ–ï¼Ÿï¼Ÿ
+    net->power = option_find_float_quiet(options, "power", 4);//4æ¬¡æ–¹ï¼Ÿï¼Ÿ
     if(net->policy == STEP){
-        net->step = option_find_int(options, "step", 1);//Ñ§Ï°ÂÊ²ÎÊı
+        net->step = option_find_int(options, "step", 1);//å­¦ä¹ ç‡å‚æ•°
         net->scale = option_find_float(options, "scale", 1);
-    } else if (net->policy == STEPS){//ÔËĞĞÒ»¶¨²½³¤¾ÃĞŞ¸ÄÑ§Ï°ÂÊ
+    } else if (net->policy == STEPS){//è¿è¡Œä¸€å®šæ­¥é•¿ä¹…ä¿®æ”¹å­¦ä¹ ç‡
         char *l = option_find(options, "steps");
         char *p = option_find(options, "scales");
         if(!l || !p) error("STEPS policy must have steps and scales in cfg file");
@@ -792,7 +792,7 @@ void parse_net_options(list *options, network *net)
     }
     net->max_batches = option_find_int(options, "max_batches", 0);
 }
-//ÅĞ¶ÏÊÇ·ñÎª"[net]"»ò"[network]"
+//åˆ¤æ–­æ˜¯å¦ä¸º"[net]"æˆ–"[network]"
 int is_network(section *s)
 {
     return (strcmp(s->type, "[net]")==0
@@ -801,29 +801,29 @@ int is_network(section *s)
 
 network *parse_network_cfg(char *filename)
 {
-    // ´ÓÉñ¾­ÍøÂç½á¹¹²ÎÊıÎÄ¼şÖĞ¶ÁÈëËùÓĞÉñ¾­ÍøÂç²ãµÄ½á¹¹²ÎÊı£¬´æ´¢µ½sectionsÖĞ£¬
-    // sectionsµÄÃ¿¸önode°üº¬Ò»²ãÉñ¾­ÍøÂçµÄËùÓĞ½á¹¹²ÎÊı
+    // ä»ç¥ç»ç½‘ç»œç»“æ„å‚æ•°æ–‡ä»¶ä¸­è¯»å…¥æ‰€æœ‰ç¥ç»ç½‘ç»œå±‚çš„ç»“æ„å‚æ•°ï¼Œå­˜å‚¨åˆ°sectionsä¸­ï¼Œ
+    // sectionsçš„æ¯ä¸ªnodeåŒ…å«ä¸€å±‚ç¥ç»ç½‘ç»œçš„æ‰€æœ‰ç»“æ„å‚æ•°
     list *sections = read_cfg(filename);
 
-    // »ñÈ¡sectionsµÄµÚÒ»¸ö½Úµã£¬¿ÉÒÔ²é¿´Ò»ÏÂcfg/***.cfgÎÄ¼ş£¬ÆäÊµµÚÒ»¿é²ÎÊı£¨ÒÔ[net]¿ªÍ·£©²»ÊÇÄ³²ãÉñ¾­ÍøÂçµÄ²ÎÊı£¬
-    // ¶øÊÇ¹ØÓÚÕû¸öÍøÂçµÄÒ»Ğ©Í¨ÓÃ²ÎÊı£¬±ÈÈçÑ§Ï°ÂÊ£¬Ë¥¼õÂÊ£¬ÊäÈëÍ¼Ïñ¿í¸ß£¬batch´óĞ¡µÈ£¬
-    // ¾ßÌåµÄ¹ØÓÚÄ³¸öÍøÂç²ãµÄ²ÎÊıÊÇ´ÓµÚ¶ş¿é¿ªÊ¼µÄ£¬Èç[convolutional],[maxpool]...£¬
-    // ÕâĞ©²ã²¢Ã»ÓĞ±àºÅ£¬Ö»ËµÃ÷ÁË²ãµÄÊôĞÔ£¬µ«²ãµÄ²ÎÊı¶¼ÊÇ°´Ë³ĞòÔÚÎÄ¼şÖĞÅÅºÃµÄ£¬¶ÁÈëÊ±£¬
-    // sectionsÁ´±íÉÏµÄË³Ğò¾ÍÊÇÎÄ¼şÖĞµÄÅÅÁĞË³Ğò¡£
+    // è·å–sectionsçš„ç¬¬ä¸€ä¸ªèŠ‚ç‚¹ï¼Œå¯ä»¥æŸ¥çœ‹ä¸€ä¸‹cfg/***.cfgæ–‡ä»¶ï¼Œå…¶å®ç¬¬ä¸€å—å‚æ•°ï¼ˆä»¥[net]å¼€å¤´ï¼‰ä¸æ˜¯æŸå±‚ç¥ç»ç½‘ç»œçš„å‚æ•°ï¼Œ
+    // è€Œæ˜¯å…³äºæ•´ä¸ªç½‘ç»œçš„ä¸€äº›é€šç”¨å‚æ•°ï¼Œæ¯”å¦‚å­¦ä¹ ç‡ï¼Œè¡°å‡ç‡ï¼Œè¾“å…¥å›¾åƒå®½é«˜ï¼Œbatchå¤§å°ç­‰ï¼Œ
+    // å…·ä½“çš„å…³äºæŸä¸ªç½‘ç»œå±‚çš„å‚æ•°æ˜¯ä»ç¬¬äºŒå—å¼€å§‹çš„ï¼Œå¦‚[convolutional],[maxpool]...ï¼Œ
+    // è¿™äº›å±‚å¹¶æ²¡æœ‰ç¼–å·ï¼Œåªè¯´æ˜äº†å±‚çš„å±æ€§ï¼Œä½†å±‚çš„å‚æ•°éƒ½æ˜¯æŒ‰é¡ºåºåœ¨æ–‡ä»¶ä¸­æ’å¥½çš„ï¼Œè¯»å…¥æ—¶ï¼Œ
+    // sectionsé“¾è¡¨ä¸Šçš„é¡ºåºå°±æ˜¯æ–‡ä»¶ä¸­çš„æ’åˆ—é¡ºåºã€‚
     node *n = sections->front;
     if(!n) error("Config file has no sections");
-    // ´´½¨ÍøÂç½á¹¹²¢¶¯Ì¬·ÖÅäÄÚ´æ£ºÊäÈëÍøÂç²ãÊıÎªsections->size - 1£¬sectionsµÄµÚÒ»¶Î²»ÊÇÍøÂç²ã£¬¶øÊÇÍ¨ÓÃÍøÂç²ÎÊı
-    network *net = make_network(sections->size - 1);//È·¶¨½¨Á¢Ò»¸öÓĞsections->size - 1²ãµÄÍøÂç
-    // ËùÓÃÏÔ¿¨µÄ¿¨ºÅ£¨gpu_indexÔÚcuda.cÖĞÓÃextern¹Ø¼ü×ÖÉùÃ÷£©
-    // ÔÚµ÷ÓÃparse_network_cfg()Ö®Ç°£¬Ê¹ÓÃÁËcuda_set_device()ÉèÖÃÁËgpu_indexµÄÖµºÅÎªµ±Ç°»îÔ¾GPU¿¨ºÅ
+    // åˆ›å»ºç½‘ç»œç»“æ„å¹¶åŠ¨æ€åˆ†é…å†…å­˜ï¼šè¾“å…¥ç½‘ç»œå±‚æ•°ä¸ºsections->size - 1ï¼Œsectionsçš„ç¬¬ä¸€æ®µä¸æ˜¯ç½‘ç»œå±‚ï¼Œè€Œæ˜¯é€šç”¨ç½‘ç»œå‚æ•°
+    network *net = make_network(sections->size - 1);//ç¡®å®šå»ºç«‹ä¸€ä¸ªæœ‰sections->size - 1å±‚çš„ç½‘ç»œ
+    // æ‰€ç”¨æ˜¾å¡çš„å¡å·ï¼ˆgpu_indexåœ¨cuda.cä¸­ç”¨externå…³é”®å­—å£°æ˜ï¼‰
+    // åœ¨è°ƒç”¨parse_network_cfg()ä¹‹å‰ï¼Œä½¿ç”¨äº†cuda_set_device()è®¾ç½®äº†gpu_indexçš„å€¼å·ä¸ºå½“å‰æ´»è·ƒGPUå¡å·
     net->gpu_index = gpu_index;
-    // size_params½á¹¹ÌåÔªËØ²»º¬Ö¸Õë±äÁ¿
-    size_params params;//±íÊ¾Ã¿Ò»²ãµÄ²ÎÊı
+    // size_paramsç»“æ„ä½“å…ƒç´ ä¸å«æŒ‡é’ˆå˜é‡
+    size_params params;//è¡¨ç¤ºæ¯ä¸€å±‚çš„å‚æ•°
 
-    section *s = (section *)n->val;//µÚÒ»²ãµÄ²ÎÊı
-    list *options = s->options;//µÚÒ»²ã£¬²ÎÊıÁĞ±í
+    section *s = (section *)n->val;//ç¬¬ä¸€å±‚çš„å‚æ•°
+    list *options = s->options;//ç¬¬ä¸€å±‚ï¼Œå‚æ•°åˆ—è¡¨
     if(!is_network(s)) error("First section must be [net] or [network]");
-    parse_net_options(options, net);//½âÎöcfgÖĞµÚÒ»²ã²ÎÊı£¬¿ÉÒÔ³õÊ¼»¯net²ÎÊı
+    parse_net_options(options, net);//è§£æcfgä¸­ç¬¬ä¸€å±‚å‚æ•°ï¼Œå¯ä»¥åˆå§‹åŒ–netå‚æ•°
 
     params.h = net->h;
     params.w = net->w;
@@ -834,19 +834,19 @@ network *parse_network_cfg(char *filename)
     params.net = net;
 
     size_t workspace_size = 0;
-    n = n->next;//Ö¸ÏòµÚ¶ş²ã£¬Êµ¼ÊÍøÂçµÄµÚÒ»²ã
+    n = n->next;//æŒ‡å‘ç¬¬äºŒå±‚ï¼Œå®é™…ç½‘ç»œçš„ç¬¬ä¸€å±‚
     int count = 0;
-    free_section(s);//µÚÒ»²ã£¬Õû¸öÍøÂçµÄ²ÎÊıÒÑÌáÈ¡Íê±Ï£¬ÊÍ·Åµô
-    // ´Ë´¦stderr²»ÊÇ´íÎóÌáÊ¾£¬¶øÊÇÊä³ö½á¹ûÌáÊ¾£¬ÌáÊ¾ÍøÂç½á¹¹
+    free_section(s);//ç¬¬ä¸€å±‚ï¼Œæ•´ä¸ªç½‘ç»œçš„å‚æ•°å·²æå–å®Œæ¯•ï¼Œé‡Šæ”¾æ‰
+    // æ­¤å¤„stderrä¸æ˜¯é”™è¯¯æç¤ºï¼Œè€Œæ˜¯è¾“å‡ºç»“æœæç¤ºï¼Œæç¤ºç½‘ç»œç»“æ„
     fprintf(stderr, "layer     filters    size              input                output\n");
     while(n){
         params.index = count;
         fprintf(stderr, "%5d ", count);
-        s = (section *)n->val;//µ±Ç°²ãµÄ²ã²ÎÊı section
+        s = (section *)n->val;//å½“å‰å±‚çš„å±‚å‚æ•° section
         options = s->options;
-        // ¶¨ÒåÍøÂç²ã
+        // å®šä¹‰ç½‘ç»œå±‚
         layer l = {0};
-        // »ñÈ¡ÍøÂç²ãµÄÀà±ğ
+        // è·å–ç½‘ç»œå±‚çš„ç±»åˆ«
         LAYER_TYPE lt = string_to_layer_type(s->type);
         if(lt == CONVOLUTIONAL){
             l = parse_convolutional(options, params);
@@ -922,13 +922,13 @@ network *parse_network_cfg(char *filename)
         l.dontloadscales = option_find_int_quiet(options, "dontloadscales", 0);
         l.learning_rate_scale = option_find_float_quiet(options, "learning_rate", 1);
         l.smooth = option_find_float_quiet(options, "smooth", 0);
-        option_unused(options);//ÏÔÊ¾Î´ÓÃ²ÎÊı£¿
-        net->layers[count] = l;// netµÄlayersÖ¸ÏòÃ¿Ò»²ãµÄ²ÎÊı
+        option_unused(options);//æ˜¾ç¤ºæœªç”¨å‚æ•°ï¼Ÿ
+        net->layers[count] = l;// netçš„layersæŒ‡å‘æ¯ä¸€å±‚çš„å‚æ•°
         if (l.workspace_size > workspace_size) workspace_size = l.workspace_size;
         free_section(s);
         n = n->next;
         ++count;
-        // ¹¹½¨Ã¿Ò»²ãÖ®ºó£¬Èç¹ûÖ®ºó»¹ÓĞ²ã£¬Ôò¸üĞÂparams.h,params.w,params.c¼°params.inputsÎªÉÏÒ»²ãÏàÓ¦µÄÊä³ö²ÎÊı
+        // æ„å»ºæ¯ä¸€å±‚ä¹‹åï¼Œå¦‚æœä¹‹åè¿˜æœ‰å±‚ï¼Œåˆ™æ›´æ–°params.h,params.w,params.cåŠparams.inputsä¸ºä¸Šä¸€å±‚ç›¸åº”çš„è¾“å‡ºå‚æ•°
         if(n){
             params.h = l.out_h;
             params.w = l.out_w;
@@ -937,7 +937,7 @@ network *parse_network_cfg(char *filename)
         }
     }
     free_list(sections);
-    layer out = get_network_output_layer(net);//Èç¹ûÓĞcost£¬cost¾ÍÊÇÊä³ö£¬·ñÔò    net->layers[0]¾ÍÊÇÊä³ö
+    layer out = get_network_output_layer(net);//å¦‚æœæœ‰costï¼Œcostå°±æ˜¯è¾“å‡ºï¼Œå¦åˆ™    net->layers[0]å°±æ˜¯è¾“å‡º
     net->outputs = out.outputs;
     net->truths = out.outputs;
     if(net->layers[net->n-1].truths) net->truths = net->layers[net->n-1].truths;
@@ -958,61 +958,61 @@ network *parse_network_cfg(char *filename)
             net->workspace = calloc(1, workspace_size);
         }
 #else
-        net->workspace = calloc(1, workspace_size);//workspace_sizeÎªÍøÂç×î´óÒ»²ãµÄ³ß´ç
+        net->workspace = calloc(1, workspace_size);//workspace_sizeä¸ºç½‘ç»œæœ€å¤§ä¸€å±‚çš„å°ºå¯¸
 #endif
     }
     return net;
 }
 //
 /*
-**  ¶ÁÈ¡Éñ¾­ÍøÂç½á¹¹ÅäÖÃÎÄ¼ş£¨.cfgÎÄ¼ş£©ÖĞµÄÅäÖÃÊı¾İ£¬½«Ã¿¸öÉñ¾­ÍøÂç²ã²ÎÊı¶ÁÈ¡µ½Ã¿¸ösection½á¹¹ÌåÖĞ£¬
-**  ¶ÁÈ¡cfgÎÄ¼ş£¬²¢½«Ã¿Ò»²ã´æµ½optionsÁĞ±íÖĞ£¬Ã¿Ò»²ãÊÇÒ»¸ösection±äÁ¿(type ²ãÃû£¬optionsÁ´±í´æ²ÎÊı
-**  £¨Ã¿¸ösectionÊÇsectionsµÄÒ»¸ö½Úµã£©¶øºóÈ«²¿²åÈëµ½list½á¹¹ÌåsectionsÖĞ²¢·µ»Ø
-**  ÊäÈë£º filename    C·ç¸ñ×Ö·ûÊı×é£¬Éñ¾­ÍøÂç½á¹¹ÅäÖÃÎÄ¼şÂ·¾¶
-**  ·µ»Ø£º list½á¹¹ÌåÖ¸Õë£¬°üº¬´ÓÉñ¾­ÍøÂç½á¹¹ÅäÖÃÎÄ¼şÖĞ¶ÁÈëµÄËùÓĞÉñ¾­ÍøÂç²ãµÄ²ÎÊı
+**  è¯»å–ç¥ç»ç½‘ç»œç»“æ„é…ç½®æ–‡ä»¶ï¼ˆ.cfgæ–‡ä»¶ï¼‰ä¸­çš„é…ç½®æ•°æ®ï¼Œå°†æ¯ä¸ªç¥ç»ç½‘ç»œå±‚å‚æ•°è¯»å–åˆ°æ¯ä¸ªsectionç»“æ„ä½“ä¸­ï¼Œ
+**  è¯»å–cfgæ–‡ä»¶ï¼Œå¹¶å°†æ¯ä¸€å±‚å­˜åˆ°optionsåˆ—è¡¨ä¸­ï¼Œæ¯ä¸€å±‚æ˜¯ä¸€ä¸ªsectionå˜é‡(type å±‚åï¼Œoptionsé“¾è¡¨å­˜å‚æ•°
+**  ï¼ˆæ¯ä¸ªsectionæ˜¯sectionsçš„ä¸€ä¸ªèŠ‚ç‚¹ï¼‰è€Œåå…¨éƒ¨æ’å…¥åˆ°listç»“æ„ä½“sectionsä¸­å¹¶è¿”å›
+**  è¾“å…¥ï¼š filename    Cé£æ ¼å­—ç¬¦æ•°ç»„ï¼Œç¥ç»ç½‘ç»œç»“æ„é…ç½®æ–‡ä»¶è·¯å¾„
+**  è¿”å›ï¼š listç»“æ„ä½“æŒ‡é’ˆï¼ŒåŒ…å«ä»ç¥ç»ç½‘ç»œç»“æ„é…ç½®æ–‡ä»¶ä¸­è¯»å…¥çš„æ‰€æœ‰ç¥ç»ç½‘ç»œå±‚çš„å‚æ•°
 */
 list *read_cfg(char *filename)
 {
-    // C·ç¸ñÎÄ¼şÁ÷£¬"r"£¬Ö»¶ÁÄ£Ê½£¬ÒªÇófilename±ØĞë´æÔÚ£¬·ñÔò·µ»Ø¿ÕÖ¸Õë
+    // Cé£æ ¼æ–‡ä»¶æµï¼Œ"r"ï¼Œåªè¯»æ¨¡å¼ï¼Œè¦æ±‚filenameå¿…é¡»å­˜åœ¨ï¼Œå¦åˆ™è¿”å›ç©ºæŒ‡é’ˆ
     FILE *file = fopen(filename, "r");
     if(file == 0) file_error(filename);
     char *line;
-    int nu = 0; //Í³¼Æµ±Ç°¶Áµ½µÚ¼¸ĞĞ
-    // ¶¯Ì¬·ÖÅälist¶ÔÏóÄÚ´æ£¬²¢³õÊ¼»¯sectionsËùÓĞÔªËØÖµÎª0
-    // sections°üº¬ËùÓĞµÄsection£¬Ò²¼´°üº¬ËùÓĞµÄÉñ¾­ÍøÂç²ã²ÎÊı
-    list *options = make_list();//³õÊ¼»¯Ò»¸öÁĞ±í
-    // Ò»¸ösection±íÊ¾ÅäÖÃÎÄ¼şÖĞµÄÒ»¸ö×Ö¶Î£¬Ò²¾ÍÊÇ¶ÔÓ¦Éñ¾­ÍøÂç½á¹¹ÖĞµÄÒ»²ã
-    // Òò´Ë£¬Ò»¸ösection½«¶ÁÈ¡²¢´æ´¢Ä³Ò»²ãµÄ²ÎÊıÒÔ¼°¸Ã²ãµÄÀà±ğÃû
+    int nu = 0; //ç»Ÿè®¡å½“å‰è¯»åˆ°ç¬¬å‡ è¡Œ
+    // åŠ¨æ€åˆ†é…listå¯¹è±¡å†…å­˜ï¼Œå¹¶åˆå§‹åŒ–sectionsæ‰€æœ‰å…ƒç´ å€¼ä¸º0
+    // sectionsåŒ…å«æ‰€æœ‰çš„sectionï¼Œä¹Ÿå³åŒ…å«æ‰€æœ‰çš„ç¥ç»ç½‘ç»œå±‚å‚æ•°
+    list *options = make_list();//åˆå§‹åŒ–ä¸€ä¸ªåˆ—è¡¨
+    // ä¸€ä¸ªsectionè¡¨ç¤ºé…ç½®æ–‡ä»¶ä¸­çš„ä¸€ä¸ªå­—æ®µï¼Œä¹Ÿå°±æ˜¯å¯¹åº”ç¥ç»ç½‘ç»œç»“æ„ä¸­çš„ä¸€å±‚
+    // å› æ­¤ï¼Œä¸€ä¸ªsectionå°†è¯»å–å¹¶å­˜å‚¨æŸä¸€å±‚çš„å‚æ•°ä»¥åŠè¯¥å±‚çš„ç±»åˆ«å
     section *current = 0;
-    // µ÷ÓÃfgetl¶ÁÈ¡ÎÄ¼şÖĞµÄÒ»ĞĞ£¨·µ»Ø×Ö·ûÊı×éÖ¸Õë£©
+    // è°ƒç”¨fgetlè¯»å–æ–‡ä»¶ä¸­çš„ä¸€è¡Œï¼ˆè¿”å›å­—ç¬¦æ•°ç»„æŒ‡é’ˆï¼‰
     while((line=fgetl(file)) != 0){
         ++ nu;
-        // È¥³ı¶ÁÈëĞĞÖĞ¿ÉÄÜº¬ÓĞµÄ¿Õ°×·û
+        // å»é™¤è¯»å…¥è¡Œä¸­å¯èƒ½å«æœ‰çš„ç©ºç™½ç¬¦
         strip(line);
         switch(line[0]){
-            // ÒÔ[¿ªÍ·µÄĞĞÊÇ²ãµÄÀà±ğËµÃ÷£¬±ÈÈç[net],[maxpool],[convolutional]Ö®ÀàµÄ
+            // ä»¥[å¼€å¤´çš„è¡Œæ˜¯å±‚çš„ç±»åˆ«è¯´æ˜ï¼Œæ¯”å¦‚[net],[maxpool],[convolutional]ä¹‹ç±»çš„
             case '[':
-                // ¶¯Ì¬·ÖÅäÒ»¸ösectionÄÚ´æ¸øcurrent
+                // åŠ¨æ€åˆ†é…ä¸€ä¸ªsectionå†…å­˜ç»™current
                 current = malloc(sizeof(section));
-                // ½«µ¥¸ösection current²åÈësection¼¯ºÏsectionsÖĞ
+                // å°†å•ä¸ªsection currentæ’å…¥sectioné›†åˆsectionsä¸­
                 list_insert(options, current);
-                // ½øÒ»²½¶¯Ì¬µÄÎªcurrentµÄÔªËØoptions¶¯Ì¬·ÖÅäÄÚ´æ
+                // è¿›ä¸€æ­¥åŠ¨æ€çš„ä¸ºcurrentçš„å…ƒç´ optionsåŠ¨æ€åˆ†é…å†…å­˜
                 current->options = make_list();
-                // ÒÔ[¿ªÍ·µÄÊÇ²ãµÄÀà±ğ£¬¸³Öµ¸øtype
+                // ä»¥[å¼€å¤´çš„æ˜¯å±‚çš„ç±»åˆ«ï¼Œèµ‹å€¼ç»™type
                 current->type = line;
                 break;
-            // Ò»ÏÂÈıÖÖÇé¿öÊÇÎŞĞ§ĞĞ£¬Ö±½ÓÊÍ·ÅÄÚ´æ¼´¿É£¨ÒÔ#¿ªÍ·µÄÊÇ×¢ÊÍ£©
+            // ä¸€ä¸‹ä¸‰ç§æƒ…å†µæ˜¯æ— æ•ˆè¡Œï¼Œç›´æ¥é‡Šæ”¾å†…å­˜å³å¯ï¼ˆä»¥#å¼€å¤´çš„æ˜¯æ³¨é‡Šï¼‰
             case '\0':
             case '#':
             case ';':
                 free(line);
                 break;
-            // Ê£ÏÂµÄ²ÅÕæÕıÊÇÍøÂç½á¹¹µÄÊı¾İ£¬µ÷ÓÃread_option()º¯Êı¶ÁÈ¡
-            // ·µ»Ø0ËµÃ÷ÎÄ¼şÖĞµÄÊı¾İ¸ñÊ½ÓĞÎÊÌâ£¬½«»áÌáÊ¾´íÎó
+            // å‰©ä¸‹çš„æ‰çœŸæ­£æ˜¯ç½‘ç»œç»“æ„çš„æ•°æ®ï¼Œè°ƒç”¨read_option()å‡½æ•°è¯»å–
+            // è¿”å›0è¯´æ˜æ–‡ä»¶ä¸­çš„æ•°æ®æ ¼å¼æœ‰é—®é¢˜ï¼Œå°†ä¼šæç¤ºé”™è¯¯
             default:
-                if(!read_option(line, current->options)){ //Ã¿Ò»ĞĞÒ»¸ö²ÎÊı£¬½«Ò»¸ö²ÎÊı×ªÎª¼üÖµ¶Ô²åÈë¸Ä³É²ÎÊıÁĞ±í
+                if(!read_option(line, current->options)){ //æ¯ä¸€è¡Œä¸€ä¸ªå‚æ•°ï¼Œå°†ä¸€ä¸ªå‚æ•°è½¬ä¸ºé”®å€¼å¯¹æ’å…¥æ”¹æˆå‚æ•°åˆ—è¡¨
                     fprintf(stderr, "Config file error line %d, could parse: %s\n", nu, line);
-                    // CÓïÑÔÊÍ·Å¶ÑÄÚ´æ£¨¶¯Ì¬·ÖÅäµÄÄÚ´æ£©£º¶¯Ì¬·ÖÅäµÄÄÚ´æÒ»¶¨Òª¼°Ê±ÊÍ·Å
+                    // Cè¯­è¨€é‡Šæ”¾å †å†…å­˜ï¼ˆåŠ¨æ€åˆ†é…çš„å†…å­˜ï¼‰ï¼šåŠ¨æ€åˆ†é…çš„å†…å­˜ä¸€å®šè¦åŠæ—¶é‡Šæ”¾
                     free(line);
                 }
                 break;
@@ -1065,6 +1065,7 @@ void save_convolutional_weights(layer l, FILE *fp)
         pull_convolutional_layer(l);
     }
 #endif
+    //å…ˆè®¡ç®—æƒé‡æ•°é‡ï¼Œç„¶åä¿å­˜BNå‚æ•°ï¼Œå†ä¿å­˜æ‰€æœ‰æƒé‡
     int num = l.nweights;
     fwrite(l.biases, sizeof(float), l.n, fp);
     if (l.batch_normalize){
@@ -1102,7 +1103,11 @@ void save_connected_weights(layer l, FILE *fp)
         fwrite(l.rolling_variance, sizeof(float), l.outputs, fp);
     }
 }
-
+// ä¿å­˜æƒé‡å‚æ•°
+// è¾“å…¥ï¼š net     ç½‘ç»œç»“æ„ï¼ŒåŒ…æ‹¬å½“å‰è®­ç»ƒå¥½çš„æƒé‡æ•°æ®
+//       filename  ä¿å­˜æ–‡ä»¶å
+//       cutoff    æƒé‡ä¿å­˜ä»0å±‚åˆ°åº•cutoffå±‚ï¼Œä¸€èˆ¬ä¸ºç½‘ç»œæ€»å±‚æ•°ï¼Œä¸ªåˆ«æƒ…å†µåªä¿å­˜å‰å‡ å±‚
+// 
 void save_weights_upto(network *net, char *filename, int cutoff)
 {
 #ifdef GPU
@@ -1113,18 +1118,20 @@ void save_weights_upto(network *net, char *filename, int cutoff)
     fprintf(stderr, "Saving weights to %s\n", filename);
     FILE *fp = fopen(filename, "wb");
     if(!fp) file_error(filename);
-
+    //é¦–å…ˆå†™å…¥æƒé‡æ•°æ®çš„ç‰ˆæœ¬å·
     int major = 0;
     int minor = 2;
     int revision = 0;
     fwrite(&major, sizeof(int), 1, fp);
     fwrite(&minor, sizeof(int), 1, fp);
     fwrite(&revision, sizeof(int), 1, fp);
+    // net->seen è¡¨ç¤ºå·²ç»è®­ç»ƒçš„å›¾ç‰‡æ•°ç›®
     fwrite(net->seen, sizeof(size_t), 1, fp);
 
     int i;
     for(i = 0; i < net->n && i < cutoff; ++i){
         layer l = net->layers[i];
+        //æ ¹æ®å„å±‚ç±»å‹åˆ†åˆ«ä¿å­˜
         if (l.dontsave) continue;
         if(l.type == CONVOLUTIONAL || l.type == DECONVOLUTIONAL){
             save_convolutional_weights(l, fp);
@@ -1182,10 +1189,10 @@ void save_weights(network *net, char *filename)
 }
 
 /*
-**  ×ªÖÃ¾ØÕó
-**  ÊäÈë£º a       Òª½øĞĞ×ªÖÃµÄ¾ØÕóÖ¸Õë£¬Ò²ÊÇ×îºóµÄÊä³ö£¬×ªÖÃºóµÄ¾ØÕóÒ²»á´æµ½¸Ã±äÁ¿ÉÏ
-**        rows    aµÄĞĞÊı£¨×ªÖÃÇ°£©
-**        cols    aµÄÁĞÊı£¨×ªÖÃÇ°£©
+**  è½¬ç½®çŸ©é˜µ
+**  è¾“å…¥ï¼š a       è¦è¿›è¡Œè½¬ç½®çš„çŸ©é˜µæŒ‡é’ˆï¼Œä¹Ÿæ˜¯æœ€åçš„è¾“å‡ºï¼Œè½¬ç½®åçš„çŸ©é˜µä¹Ÿä¼šå­˜åˆ°è¯¥å˜é‡ä¸Š
+**        rows    açš„è¡Œæ•°ï¼ˆè½¬ç½®å‰ï¼‰
+**        cols    açš„åˆ—æ•°ï¼ˆè½¬ç½®å‰ï¼‰
 */
 void transpose_matrix(float *a, int rows, int cols)
 {
@@ -1196,11 +1203,11 @@ void transpose_matrix(float *a, int rows, int cols)
             transpose[y*rows + x] = a[x*cols + y];
         }
     }
-    // ½«transposeÄÚ´æ¿éÖ±½Ó¸´ÖÆ¸øa
-    // memcpy()º¯Êı³£ÓÃÓÚÊı×é¸´ÖÆ
+    // å°†transposeå†…å­˜å—ç›´æ¥å¤åˆ¶ç»™a
+    // memcpy()å‡½æ•°å¸¸ç”¨äºæ•°ç»„å¤åˆ¶
     memcpy(a, transpose, rows*cols*sizeof(float));
-    // ÇĞ¼ÇÊÍ·ÅÒÑ¾­Ã»ÓĞÓÃµÄtranspose£¬ÒòÎªaÖĞÒÑ¾­¸´ÖÆÁËtransposeµÄÖµ
-    // ×¢Òâmemcpy²»ÊÇÍê³ÉÖ¸ÕëÒâÒåÉÏ¸´ÖÆ£¨µØÖ·¸´ÖÆ£©£¬¶øÊÇÄÚÈİÉÏµÄ¸´ÖÆ
+    // åˆ‡è®°é‡Šæ”¾å·²ç»æ²¡æœ‰ç”¨çš„transposeï¼Œå› ä¸ºaä¸­å·²ç»å¤åˆ¶äº†transposeçš„å€¼
+    // æ³¨æ„memcpyä¸æ˜¯å®ŒæˆæŒ‡é’ˆæ„ä¹‰ä¸Šå¤åˆ¶ï¼ˆåœ°å€å¤åˆ¶ï¼‰ï¼Œè€Œæ˜¯å†…å®¹ä¸Šçš„å¤åˆ¶
     free(transpose);
 }
 
