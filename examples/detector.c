@@ -26,10 +26,26 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     char *train_images = option_find_str(options, "train", "data/train.list");
     char *backup_directory = option_find_str(options, "backup", "/backup/");
 
-    srand(time(0));
 
     // 提取配置文件名称中的主要信息，用于输出打印（并无实质作用），比如提取cfg/yolo.cfg中的yolo，用于下面的输出打印
     char *base = basecfg(cfgfile);
+    FILE recode_file;
+    char record_buffer[32] = {0};
+    int buf_len = 0;
+    srand(time(0));
+    char recode_filername[64] = {0};
+    char szTime[24] = {0};
+    struct tm tm1;  
+    time_t time1 = time(0);
+    localtime_r(&time1, &tm1 );  
+    sprintf( szTime, "%4.4d%2.2d%2.2d%2.2d%2.2d%2.2d",  
+           tm1.tm_year+1900, tm1.tm_mon+1, tm1.tm_mday,  
+             tm1.tm_hour, tm1.tm_min,tm1.tm_sec);  
+    sprintf(recode_filername,"/backup/%s_%s.txt",base,szTime);
+    
+
+
+
     printf("%s\n", base);
     float avg_loss = -1;
     // 构建网络：用多少块GPU，就会构建多少个相同的网络（不使用GPU时，ngpus=1）
@@ -88,7 +104,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     int count = 0;
     //while(i*imgs < N*120){
     while(get_current_batch(net) < net->max_batches){
-        //这里干嘛？？
+        // 是否开启多尺度训练
         if(l.random && count++%10 == 0){
             printf("Resizing\n");
             int dim = (rand() % 10 + 10) * 32;
@@ -156,6 +172,16 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 
         i = get_current_batch(net);
         printf("%ld: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now()-time, i*imgs);
+        if(0 == fopen_s(&recode_file,recode_filername,"a")){
+            memset(record_buffer,0,sizeof(record_buffer));
+            buf_len = sprintf(record_buffer,"%d\t%d\t%e\t%f\t%f\n", 
+                get_current_batch(net),net.w,get_current_rate(net),loss,avg_loss);
+            fwrite(recode_buffer,l,buf_len,recode_file);
+            fclose(recode_file)
+
+        }
+       
+       
        //没100批次自动保存一下
         if(i%100==0){
 #ifdef GPU

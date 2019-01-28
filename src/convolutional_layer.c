@@ -575,9 +575,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
         // 详细查看该函数注释（比较复杂）
             gemm(0,0,m,n,k,1,a,k,b,n,1,c,n);
         }
-        // 对c进行指针偏移：移到batch中下一张图片对应输出的起始位置（每循环一次，将完成对一张图片的卷积操作，
-        // 产生的所有特征图的元素个数总和为n*m）
-        c += n*m;
+
     }
 
     // 如需要规范化（BN在非线性激活函数处理之前完成）

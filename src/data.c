@@ -134,6 +134,7 @@ matrix load_image_augment_paths(char **paths, int n, int min, int max, int size,
         } else {
             crop = random_augment_image(im, angle, aspect, min, max, size, size);
         }
+        //随机翻转
         int flip = rand()%2;
         if (flip) flip_image(crop);
         random_distort_image(crop, hue, saturation, exposure);
