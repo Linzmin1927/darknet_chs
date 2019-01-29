@@ -7,7 +7,7 @@ ShuffleNet(阅读文献中) <br>
 ShuffleNet V2(阅读文献中) <br>
 Deep Compression(暂定) <br>
 
-参考文献:
+参考文献: <br>
 [1] Redmon J , Divvala S , Girshick R , et al. You Only Look Once: Unified, Real-Time Object Detection[J]. 2015. <br>
 [2] Redmon J, Farhadi A. YOLO9000: Better, Faster, Stronger[C]// IEEE Conference on Computer Vision & Pattern Recognition. 2017. <br>
 [3] Redmon J , Farhadi A . YOLOv3: An Incremental Improvement[J]. 2018. <br>
