@@ -46,7 +46,7 @@ decay           #权重衰减正则项，防止过拟合，默认为0.0001
 
 time_steps      #时间步数，RNN/LSTM模型中参数
 notruth         #不清楚，没用到
-random          #
+random          #是否开启多尺度学习
 adam            #是否使用adma，默认为 0
 B1              # adam 参数
 B2              # adam 参数
@@ -131,5 +131,42 @@ scale    		#缩放尺度，默认为1
 ratio			#暂不清楚，与GPU计算有关，默认为0
 noobj			#noobject_scale，暂不清楚，与GPU计算有关，默认为1
 thresh			#iou阈值，当best_iou大于阈值时，损失系数置0,默认为0
+
+[route]         #darknet中router层是用来合并前面若干层的输出,作为一个新层,其本质上就是一个复制操作
+layer           # 将多个层输出拼接在一起，如果为负数，则表示该层的前几层
+# 例如输入层1：26*26*256   输入层2：26*26*128  则route layer输出为：26*26*（256+128）
+
+[yolo]
+classes			#类别数量
+anchors			#预设的锚点框尺寸，例如10,13,  16,30,  33,23, ...等表示
+mask			#在该yolo中采用那几个锚点框，mask = 0,1 表示采用 10,13,  16,30,这两个
+num				#表示锚点框总共多少个
+max				# 最大识别框数量
+jitter
+ignore_thresh
+truth_thresh
+random
+map
+
+# 注意[yolo]层前接的[conv]层的滤波器需要与[yolo]层相一致，例如
+#		 [convolutional]
+#		 size=1
+#		 stride=1
+#		 pad=1
+#		 filters=255  3*(80+5) 这里3指[yolo]mask = 0,1,2采用这三个候选框，就是要预测3个候选框
+#							   80表示80个类别,5表示xywh坐标位置与存在目标可能性
+#		 activation=linear
+#		 [yolo]
+#		 mask = 0,1,2
+#		 anchors = 10,13,  16,30,  33,23,  30,61,  62,45,  59,119,  116,90,  156,198,  373,326
+#		 classes=80
+#		 num=9
+#		 
+
+
+
+
+
+
 
 

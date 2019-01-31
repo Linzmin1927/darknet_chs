@@ -124,8 +124,8 @@ void delta_yolo_class(float *output, float *delta, int index, int class, int cla
 
 static int entry_index(layer l, int batch, int location, int entry)
 {
-    int n =   location / (l.w*l.h);
-    int loc = location % (l.w*l.h);
+    int n =   location / (l.w*l.h);//output中的第n个框
+    int loc = location % (l.w*l.h);//第n个图的第loc个cell
     return batch*l.outputs + n*l.w*l.h*(4+l.classes+1) + entry*l.w*l.h + loc;
 }
 
@@ -159,12 +159,16 @@ void forward_yolo_layer(const layer l, network net)
     for (b = 0; b < l.batch; ++b) {
         for (j = 0; j < l.h; ++j) {
             for (i = 0; i < l.w; ++i) {
-                for (n = 0; n < l.n; ++n) {
+                for (n = 0; n < l.n; ++n) {//表示每个cell预测n个box
                     int box_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 0);
+                    //output中为数据yolo层不改变whc，mask[n]表示采用先验锚点框的序号
                     box pred = get_yolo_box(l.output, l.biases, l.mask[n], box_index, i, j, l.w, l.h, net.w, net.h, l.w*l.h);
                     float best_iou = 0;
                     int best_t = 0;
+                    //记录最佳iou与对应的
                     for(t = 0; t < l.max_boxes; ++t){
+                        //此处根据网络中存储的真实标签计算预测的iou
+                        //此处假设一个cell中只包含最多l.max_boxes个真实目标
                         box truth = float_to_box(net.truth + t*(4 + 1) + b*l.truths, 1);
                         if(!truth.x) break;
                         float iou = box_iou(pred, truth);
@@ -173,9 +177,11 @@ void forward_yolo_layer(const layer l, network net)
                             best_t = t;
                         }
                     }
+                    //n*l.w*l.h + j*l.w + i 表示第n个识别框的图中的第j行的第i个cell
+                    //表示该cell的预测输出在output中的位置
                     int obj_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 4);
-                    avg_anyobj += l.output[obj_index];
-                    l.delta[obj_index] = 0 - l.output[obj_index];
+                    avg_anyobj += l.output[obj_index];//同一cell在多个候选框中的均值，概率？？
+                    l.delta[obj_index] = 0 - l.output[obj_index];//置信度？
                     if (best_iou > l.ignore_thresh) {
                         l.delta[obj_index] = 0;
                     }
