@@ -17,7 +17,7 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
     l.type = YOLO;
 
     l.n = n;//n表示一个cell预测多少框，也表示anchorbox个数
-    l.total = total;
+    l.total = total;//表示一个cell预测多少框，也表示anchorbox个数
     l.batch = batch;
     l.h = h;
     l.w = w;
@@ -27,7 +27,7 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
     l.out_c = l.c;
     l.classes = classes;
     l.cost = calloc(1, sizeof(float));
-    l.biases = calloc(total*2, sizeof(float));
+    l.biases = calloc(total*2, sizeof(float));//开辟空间存储每个框的wh？
     if(mask) l.mask = mask;
     else{
         l.mask = calloc(n, sizeof(int));
@@ -89,7 +89,8 @@ box get_yolo_box(float *x, float *biases, int n, int index, int i, int j, int lw
     b.h = exp(x[index + 3*stride]) * biases[2*n+1] / h;
     return b;
 }
-
+/* 预测框tx ty tw th的损失梯度，square error的求导
+ */
 float delta_yolo_box(box truth, float *x, float *biases, int n, int index, int i, int j, int lw, int lh, int w, int h, float *delta, float scale, int stride)
 {
     box pred = get_yolo_box(x, biases, n, index, i, j, lw, lh, w, h, stride);
@@ -106,12 +107,24 @@ float delta_yolo_box(box truth, float *x, float *biases, int n, int index, int i
     delta[index + 3*stride] = scale * (th - x[index + 3*stride]);
     return iou;
 }
-
+/* 计算预测类别与实际类别的损失与梯度
+ * 这里每一个delta[index]都要计算预测正确与预测错误的梯度，例如：一个预测框为所有类别概率为P_classes_i ....P_classes_80(假设为80类)
+ * 而标注的识别框为 Y_classes_1...Y_classes_80=[0 0 ... 1 ... 0 0 ]即只有一类为1，其他为0，如何计算预测类别向量与真实onehot标签的损失呢？
+ * 通过识别
+ * output 输出
+ * delta  梯度存储
+ * index 在输出的[tx ty tw th tc classes]classes部分开始的位置，加上class就是第class个类概率的位置
+ * class 表示计算第几个类别的梯度
+ * classes 一共有多少类别
+ * stride  跨度，一般为w*h整数倍，即在output内存中，一个类型的变量要隔w*h后才会出现
+ * avg_cat 计算平均损失？
+ */
 
 void delta_yolo_class(float *output, float *delta, int index, int class, int classes, int stride, float *avg_cat)
 {
     int n;
-    if (delta[index]){
+    
+    if (delta[index]){//delta[index]不为0表示 预测框与实际框的iou大于阈值，判定预测正确
         delta[index + stride*class] = 1 - output[index + stride*class];
         if(avg_cat) *avg_cat += output[index + stride*class];
         return;
@@ -218,19 +231,23 @@ void forward_yolo_layer(const layer l, network net)
                 }
             }
         }
+        //上面，我们遍历了每一个prediction的bounding box，
+        //下面我们还要遍历每个ground truth，根据IoU，为其分配一个最佳的匹配。
         for(t = 0; t < l.max_boxes; ++t){
             box truth = float_to_box(net.truth + t*(4 + 1) + b*l.truths, 1);
 
             if(!truth.x) break;
+            // 这部分是干嘛的？
             float best_iou = 0;
             int best_n = 0;
             i = (truth.x * l.w);
             j = (truth.y * l.h);
             box truth_shift = truth;
             truth_shift.x = truth_shift.y = 0;
+            // 找出预测框里长宽比和实际最匹配的一个
             for(n = 0; n < l.total; ++n){
                 box pred = {0};
-                pred.w = l.biases[2*n]/net.w;
+                pred.w = l.biases[2*n]/net.w;//为什么要除？？
                 pred.h = l.biases[2*n+1]/net.h;
                 float iou = box_iou(pred, truth_shift);
                 if (iou > best_iou){
@@ -241,7 +258,8 @@ void forward_yolo_layer(const layer l, network net)
 
             int mask_n = int_index(l.mask, best_n, l.n);
             if(mask_n >= 0){
-                int box_index = entry_index(l, b, mask_n*l.w*l.h + j*l.w + i, 0);
+                int box_index = entry_index(l, b, mask_n*l.w*l.h + j*l.w + i, 0);//第b个图的第mask_n个框的第j列第i行个cell的开始位置
+                //计算anchorbox先验的情况下的
                 float iou = delta_yolo_box(truth, l.output, l.biases, best_n, box_index, i, j, l.w, l.h, net.w, net.h, l.delta, (2-truth.w*truth.h), l.w*l.h);
 
                 int obj_index = entry_index(l, b, mask_n*l.w*l.h + j*l.w + i, 4);
@@ -261,7 +279,7 @@ void forward_yolo_layer(const layer l, network net)
             }
         }
     }
-    *(l.cost) = pow(mag_array(l.delta, l.outputs * l.batch), 2);
+    *(l.cost) = pow(mag_array(l.delta, l.outputs * l.batch), 2);//拿梯度作为损失？？
     printf("Region %d Avg IOU: %f, Class: %f, Obj: %f, No Obj: %f, .5R: %f, .75R: %f,  count: %d\n", net.index, avg_iou/count, avg_cat/class_count, avg_obj/count, avg_anyobj/(l.w*l.h*l.n*l.batch), recall/count, recall75/count, count);
 }
 

@@ -367,6 +367,7 @@ struct layer{
     float * biases;                 /* 指向偏置存储空间，bias就是Wx+b中的b（weights就是W），有多少
 									 * 个卷积核，就有多少个b（与W的个数一一对应，每个W的元素个数为
 									 * c*size*size）
+                                     * 在yolo层中为 存储所有anchor box 的w h值
 									 */
     float * bias_updates;           /* 指向bias更新暂存空间，大小与biases一致 */
 
