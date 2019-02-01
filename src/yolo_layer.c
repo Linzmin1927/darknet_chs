@@ -16,7 +16,7 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
     layer l = {0};
     l.type = YOLO;
 
-    l.n = n;
+    l.n = n;//n表示一个cell预测多少框，也表示anchorbox个数
     l.total = total;
     l.batch = batch;
     l.h = h;
@@ -36,7 +36,7 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
         }
     }
     l.bias_updates = calloc(n*2, sizeof(float));
-    l.outputs = h*w*n*(classes + 4 + 1);
+    l.outputs = h*w*n*(classes + 4 + 1);//每个cell都对应n*(classes + 4 + 1)个输出，对应有w*h
     l.inputs = l.outputs;
     l.truths = 90*(4 + 1);
     l.delta = calloc(batch*l.outputs, sizeof(float));
@@ -121,11 +121,13 @@ void delta_yolo_class(float *output, float *delta, int index, int class, int cla
         if(n == class && avg_cat) *avg_cat += output[index + stride*n];
     }
 }
-
+//此处可以想象数据块为 w*h*n的立方体，例如为13*13*9，location表示该立方体中某个元素的位置
 static int entry_index(layer l, int batch, int location, int entry)
 {
     int n =   location / (l.w*l.h);//output中的第n个框
     int loc = location % (l.w*l.h);//第n个图的第loc个cell
+    //此处可以想象一个w*h*(4+l.classes+1)的立方体
+    //n*l.w*l.h*(4+l.classes+1) + entry*l.w*l.h表示 第entry层的特征
     return batch*l.outputs + n*l.w*l.h*(4+l.classes+1) + entry*l.w*l.h + loc;
 }
 
@@ -135,11 +137,15 @@ void forward_yolo_layer(const layer l, network net)
     memcpy(l.output, net.input, l.outputs*l.batch*sizeof(float));
 
 #ifndef GPU
-    for (b = 0; b < l.batch; ++b){
+    for (b = 0; b < l.batch; ++b){//遍历一个batch中的每个图像
         for(n = 0; n < l.n; ++n){
-            int index = entry_index(l, b, n*l.w*l.h, 0);
+            //b表示第几个图 ,wh例如为13*13，26*26,52*52
+            //同一个图的所有cell的box都连续存储在一起
+            int index = entry_index(l, b, n*l.w*l.h, 0);//排列顺序为 tx ty tw th tc classes,0表示tx开始
+            // 对 tx, ty进行logistic变换
             activate_array(l.output + index, 2*l.w*l.h, LOGISTIC);
-            index = entry_index(l, b, n*l.w*l.h, 4);
+            index = entry_index(l, b, n*l.w*l.h, 4);//4表示tc
+            // 对confidence和C类进行logistic变换
             activate_array(l.output + index, (1+l.classes)*l.w*l.h, LOGISTIC);
         }
     }
@@ -157,20 +163,22 @@ void forward_yolo_layer(const layer l, network net)
     int class_count = 0;
     *(l.cost) = 0;
     for (b = 0; b < l.batch; ++b) {
+        //下面这个循环主要是更新一张图的损失函数对输出的负梯度
         for (j = 0; j < l.h; ++j) {
             for (i = 0; i < l.w; ++i) {
-                for (n = 0; n < l.n; ++n) {//表示每个cell预测n个box
+                for (n = 0; n < l.n; ++n) {//遍历每张图,每个cell,每个候选框
+                    //n*l.w*l.h + j*l.w + i表示第几个cell
                     int box_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 0);
-                    //output中为数据yolo层不改变whc，mask[n]表示采用先验锚点框的序号
+                    //output中为数据 为所有图片所有cell所有anchor box对应的[tx ty tw th tc classes]，mask[n]表示采用先验锚点框的序号
                     box pred = get_yolo_box(l.output, l.biases, l.mask[n], box_index, i, j, l.w, l.h, net.w, net.h, l.w*l.h);
                     float best_iou = 0;
                     int best_t = 0;
                     //记录最佳iou与对应的
-                    for(t = 0; t < l.max_boxes; ++t){
+                    for(t = 0; t < l.max_boxes; ++t){//遍历该图的所有真实候选框，与pred比较，计算iou，找出最大一个，当然，大部分应该为0
                         //此处根据网络中存储的真实标签计算预测的iou
                         //此处假设一个cell中只包含最多l.max_boxes个真实目标
                         box truth = float_to_box(net.truth + t*(4 + 1) + b*l.truths, 1);
-                        if(!truth.x) break;
+                        if(!truth.x) break;//遍历完所有框，实际标注的框可能没有l.max_boxes个
                         float iou = box_iou(pred, truth);
                         if (iou > best_iou) {
                             best_iou = iou;
@@ -179,18 +187,30 @@ void forward_yolo_layer(const layer l, network net)
                     }
                     //n*l.w*l.h + j*l.w + i 表示第n个识别框的图中的第j行的第i个cell
                     //表示该cell的预测输出在output中的位置
-                    int obj_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 4);
-                    avg_anyobj += l.output[obj_index];//同一cell在多个候选框中的均值，概率？？
-                    l.delta[obj_index] = 0 - l.output[obj_index];//置信度？
+                    int obj_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 4);//表示该cell的anchorbox对应包含目标的置信度
+                    avg_anyobj += l.output[obj_index];//所有图像，cell，anchorbox预测框的置信度均值？
+                    /* 此处l.delta中存储为当前变量梯度值，推导如下：
+                     * 输入X,有 Z=WX+b  激活函数为logistic函数 有y_pred = logistic(Z) 
+                     * 此处iou大于0.5就认为预测框正确，否为不正确，所以损失函数为二值化交叉熵
+                     *  L = -1*[Y*log(y_pred) + (1-Y)*log(1-y_pred)]
+                     * 则L对Z求导有 dL/dZ = y_pred - Y
+                     *  注意：y_pred导数为 y_pred(1-y_pred)
+                     * 由于为负梯度下降，所以有 -dL/dZ =  Y - y_pred
+                     * 注意：此处的梯度是 损失函数对输出预测值y_pred的梯度，要求对输入变量的梯度（W B）
+                     * 还需要求 dy_pred/dW 与 dy_pred/db
+                     */
+                    // 此处先假设iou小于阈值，则预测框不正确 Y = 0，后面如果iou大于阈值，则重新计算
+                    l.delta[obj_index] = 0 - l.output[obj_index];//有无目标概率（置信度）的梯度
+                    //如果iou已经达到要求，就认为不在计算梯度，不在变化，保持现状就好
                     if (best_iou > l.ignore_thresh) {
                         l.delta[obj_index] = 0;
                     }
-                    if (best_iou > l.truth_thresh) {
+                    if (best_iou > l.truth_thresh) { //预测框与某一真实框的iou大于阈值就认为识别成功，例如0.5 则Y变为1，重新计算梯度
                         l.delta[obj_index] = 1 - l.output[obj_index];
 
-                        int class = net.truth[best_t*(4 + 1) + b*l.truths + 4];
+                        int class = net.truth[best_t*(4 + 1) + b*l.truths + 4];//truth中存储了所有图片所有实际box的[x y w h classid]
                         if (l.map) class = l.map[class];
-                        int class_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 4 + 1);
+                        int class_index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 4 + 1);//获取输出向量中classes部分开始的位置
                         delta_yolo_class(l.output, l.delta, class_index, class, l.classes, l.w*l.h, 0);
                         box truth = float_to_box(net.truth + best_t*(4 + 1) + b*l.truths, 1);
                         delta_yolo_box(truth, l.output, l.biases, l.mask[n], box_index, i, j, l.w, l.h, net.w, net.h, l.delta, (2-truth.w*truth.h), l.w*l.h);

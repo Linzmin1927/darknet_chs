@@ -380,7 +380,7 @@ struct layer{
 									 */
     float * weight_updates;         /* 指向权重更新暂存空间，大小与weights一致 */
 
-    float * delta;                  /* 指向output暂存空间，大小与output一致 */
+    float * delta;                  /* 指向当前层给个变量的梯度存储空间，大小与output一致 */
     float * output;                 /* 指向该层输出存储空间， l.output为该层所有的输出
 									 *（包括mini-batch所有输入图片的输出）
 									 */
@@ -641,10 +641,10 @@ typedef struct network{
                                      *函数中赋值）
                                      */
     float *truth;                   /*中间变量，与上面的input对应，用来暂存input数据对应的标签
-                                     *数据（真实数据）
+                                     *数据（真实数据）存储一个batch中所有图片所有box的[x y w h classid]
                                      */
-    float *delta;                   /*中间变量，用来暂存某层网络的敏感度图（反向传播处理当前层时，
-                                     *用来存储上一层的敏感度图，因为当前层会计算部分上一层的敏感
+    float *delta;                   /*中间变量，用来暂存某层网络的梯度（反向传播处理当前层时，
+                                     *用来存储上一层的梯度图，因为当前层会计算部分上一层的梯
                                      *度图，可以参看network.c中的backward_network()函数），net.delta
                                      *并没有在创建网络之初就为其动态分配了内存，而是等到反向传播时，
                                      *直接将其等于某一层的l.delta（l.delta是在创建每一层网络之初就
