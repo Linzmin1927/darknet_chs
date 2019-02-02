@@ -695,6 +695,7 @@ route_layer parse_route(list *options, size_params params, network *net)
 //学习率策略
 learning_rate_policy get_policy(char *s)
 {
+    
     if (strcmp(s, "random")==0) return RANDOM;
     if (strcmp(s, "poly")==0) return POLY;
     if (strcmp(s, "constant")==0) return CONSTANT;
@@ -702,7 +703,7 @@ learning_rate_policy get_policy(char *s)
     if (strcmp(s, "exp")==0) return EXP;
     if (strcmp(s, "sigmoid")==0) return SIG;
     if (strcmp(s, "steps")==0) return STEPS;
-    fprintf(stderr, "Couldn't find policy %s, going with constant\n", s);
+    fprintf(stderr, "Couldn't find policy %s, going with constant %s\n", s,s);
     return CONSTANT;
 }
 //查看[net]或[network]中超参数列表，并初始化网络超参数结构体
@@ -792,11 +793,23 @@ void parse_net_options(list *options, network *net)
     }
     net->max_batches = option_find_int(options, "max_batches", 0);
 }
+// //发现strcmp函数在不然系统下有所不同，重写
+// int strcmp( char* a, char* b)
+// {
+//     while(*a==*b&&*a!='\0')
+//     {
+//         a++;
+//         b++;
+//     }
+//     return a - b;
+// }
 //判断是否为"[net]"或"[network]"
 int is_network(section *s)
 {
-    return (strcmp(s->type, "[net]")==0
-            || strcmp(s->type, "[network]")==0);
+//    s->type[strlen(s->type)-1]=0;
+//    fprintf(stderr, "!!s->type:%s \n!!!!strlen(s->type)=%d\n!!!strcmp(s->type) = %d\n", s->type,strlen(s->type),strcasecmp(s->type, "[net]"));
+    return (strcasecmp(s->type, "[net]")==0
+            || strcasecmp(s->type, "[network]")==0);
 }
 
 network *parse_network_cfg(char *filename)
@@ -1000,6 +1013,8 @@ list *read_cfg(char *filename)
                 current->options = make_list();
                 // 以[开头的是层的类别，赋值给type
                 current->type = line;
+                //fprintf(stderr, "current->type=%s  len = %d...\n",current->type,strlen(current->type));
+                // current->type[strlen(current->type)-1] = 0; 
                 break;
             // 一下三种情况是无效行，直接释放内存即可（以#开头的是注释）
             case '\0':

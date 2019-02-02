@@ -305,7 +305,7 @@ list *split_str(char *s, char delim)
 void strip(char *s)
 {
     size_t i;
-    size_t len = strlen(s);
+    size_t len = strlen(s)-1;//这个输出好像计算了\0???
     size_t offset = 0;
     for(i = 0; i < len; ++i){
         char c = s[i];
@@ -313,6 +313,8 @@ void strip(char *s)
         else s[i-offset] = c;
     }
     s[len-offset] = '\0';
+    // s[strlen(s)-1]=0;
+    // fprintf(stderr, "\n!!!!!!!!!!!!!!s=%s--len=%d.offset=%d.len=%d.", s, strlen(s),offset,len);
 }
 
 void strip_char(char *s, char bad)

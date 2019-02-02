@@ -49,7 +49,7 @@ load_args get_base_args(network *net)
     args.hue = net->hue;
     return args;
 }
-
+//clear为1，这清空训练迭代次数
 network *load_network(char *cfg, char *weights, int clear)
 {
     network *net = parse_network_cfg(cfg);

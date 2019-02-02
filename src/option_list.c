@@ -95,6 +95,7 @@ char *option_find(list *l, char *key)
         kvp *p = (kvp *)n->val;
         if(strcmp(p->key, key) == 0){
             p->used = 1;
+            // p->val[strlen(p->val)-1]=0;
             return p->val;
         }
         n = n->next;

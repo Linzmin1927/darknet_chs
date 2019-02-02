@@ -182,7 +182,7 @@ void oneoff2(char *cfgfile, char *weightfile, char *outfile, int l)
     *net->seen = 0;
     save_weights_upto(net, outfile, net->n);
 }
-
+//加载weightfile然后， 保存前max层权重
 void partial(char *cfgfile, char *weightfile, char *outfile, int max)
 {
     gpu_index = -1;
@@ -190,6 +190,7 @@ void partial(char *cfgfile, char *weightfile, char *outfile, int max)
     save_weights_upto(net, outfile, max);
 }
 
+//打印第n层权重
 void print_weights(char *cfgfile, char *weightfile, int n)
 {
     gpu_index = -1;
@@ -207,6 +208,13 @@ void print_weights(char *cfgfile, char *weightfile, int n)
         //printf("]%s\n", (i == l.n-1)?"":",");
     }
     //printf("]");
+}
+
+//生成一个未训练的的权重文件
+void gen_weightsfile(char *cfgfile,char* outfile)
+{
+    network *net = load_network(cfgfile, NULL, 1);
+    save_weights(net, outfile);
 }
 
 void rescale_net(char *cfgfile, char *weightfile, char *outfile)
@@ -431,7 +439,17 @@ int main(int argc, char **argv)
         run_lsd(argc, argv);
     } else if (0 == strcmp(argv[1], "detector")){
         run_detector(argc, argv);
-    } else if (0 == strcmp(argv[1], "detect")){
+    }else if(0==strcmp(argv[1], "genweghts")) {
+        //打印网络结构
+        if(argc>2)
+        {
+            gen_weightsfile(argv[2],argv[3]);    
+        }
+        else
+        {
+            printf("\n!!! No cig file");
+        }
+    }else if (0 == strcmp(argv[1], "detect")){
         float thresh = find_float_arg(argc, argv, "-thresh", .5);
         char *filename = (argc > 4) ? argv[4]: 0;
         char *outfile = find_char_arg(argc, argv, "-out", 0);
@@ -478,6 +496,7 @@ int main(int argc, char **argv)
     } else if (0 == strcmp(argv[1], "rescale")){
         rescale_net(argv[2], argv[3], argv[4]);
     } else if (0 == strcmp(argv[1], "ops")){
+        //打印网络结构并统计浮点数操作次数
         operations(argv[2]);
     } else if (0 == strcmp(argv[1], "speed")){
         speed(argv[2], (argc > 3 && argv[3]) ? atoi(argv[3]) : 0);

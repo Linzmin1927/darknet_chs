@@ -1,2 +1,21 @@
 .\darknet detect cfg/yolov3-tiny.cfg yolov3-tiny.weights data/person.jpg
 
+#根据网络结构生成一个随机初始化的权重文件
+.\darknet genweghts cfg/yolov3_mobilenet_v1.cfg backup/yolov3_mobilenet_0.weights
+.\darknet genweghts cfg/yolov3.cfg backup/yolov3_0.weights
+
+#查看网络结构，并统计推理网络浮点数操作次数
+./darknet ops cfg/yolov3_mobilenet_v1.cfg
+./darknet ops cfg/yolov3.cfg
+#
+./darknet speed cfg/yolov3_mobilenet_v1.cfg
+./darknet speed cfg/yolov3.cfg
+
+#训练
+./darknet detector train cfg/coco_modilenet.data  cfg/yolov3-tiny-modilenet.cfg
+./darknet detector train cfg/coco_modilenet.data  cfg/yolov3-tiny-modilenet.cfg backup/yolov3-tiny-modilenet_30000.weights
+
+./darknet detector train cfg/coco_modilenet.data  cfg/yolo_mobilenet.cfg
+
+./darknet detector train cfg/coco_modilenet.data  cfg/yolov3-tiny-modilenet_2.cfg backup/yolov3-tiny-modilenet_2_10000.weights
+
