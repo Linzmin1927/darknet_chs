@@ -216,7 +216,13 @@ void gen_weightsfile(char *cfgfile,char* outfile)
     network *net = load_network(cfgfile, NULL, 1);
     save_weights(net, outfile);
 }
-
+//抽取主干网络的权重保存到yolo3的权重中
+void load_backone_weightsfile(char *cfgfile,char* weightfile,int cutoff,char* outfile)
+{
+    network *net = load_network(cfgfile, NULL, 1);
+    load_weights_upto(net, weightfile, 0, cutoff);
+    save_weights(net, outfile);
+}
 void rescale_net(char *cfgfile, char *weightfile, char *outfile)
 {
     gpu_index = -1;
@@ -440,7 +446,7 @@ int main(int argc, char **argv)
     } else if (0 == strcmp(argv[1], "detector")){
         run_detector(argc, argv);
     }else if(0==strcmp(argv[1], "genweghts")) {
-        //打印网络结构
+        //根据网络结构生成一个初始化的权重文件
         if(argc>2)
         {
             gen_weightsfile(argv[2],argv[3]);    
@@ -449,6 +455,10 @@ int main(int argc, char **argv)
         {
             printf("\n!!! No cig file");
         }
+
+    }else if (0 == strcmp(argv[1], "loadbackone")){
+        //保存backone网络0~26层权重
+        load_backone_weightsfile(argv[2],argv[3],27,argv[4]);
     }else if (0 == strcmp(argv[1], "detect")){
         float thresh = find_float_arg(argc, argv, "-thresh", .5);
         char *filename = (argc > 4) ? argv[4]: 0;
