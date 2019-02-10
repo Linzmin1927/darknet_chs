@@ -110,7 +110,7 @@ int *random_index_order(int min, int max)
     return inds;
 }
 
-//½«*argvÖĞµÄµÚindex¸ö×Ö·ûÉ¾³ı£¬Ê£ÏÂ×Ö·û²¹Î»£¬×îºó¶àÓà×Ö·ûÌî0
+//å°†*argvä¸­çš„ç¬¬indexä¸ªå­—ç¬¦åˆ é™¤ï¼Œå‰©ä¸‹å­—ç¬¦è¡¥ä½ï¼Œæœ€åå¤šä½™å­—ç¬¦å¡«0
 void del_arg(int argc, char **argv, int index)
 {
     int i;
@@ -118,7 +118,7 @@ void del_arg(int argc, char **argv, int index)
     argv[i] = 0;
 }
 
-//²é¿´ argv[] ÖĞÊÇ·ñÓĞ*arg×Ö¶Î£¬ÎªÊ²Ã´²»ÓÃstrstr
+//æŸ¥çœ‹ argv[] ä¸­æ˜¯å¦æœ‰*argå­—æ®µï¼Œä¸ºä»€ä¹ˆä¸ç”¨strstr
 int find_arg(int argc, char* argv[], char *arg)
 {
     int i;
@@ -131,8 +131,8 @@ int find_arg(int argc, char* argv[], char *arg)
     }
     return 0;
 }
-//ÔÚ*argv×Ö·û´®ÖĞÕÒµ½*arg×Ö·ûËùÔÚÎ»ÖÃ£¬²¢½«ÆäºóÃæµÄ²ÎÊı×ªÎªint¸ødef
-//ÕÒµ½*argºó£¬ÔÚ×Ö·û´®ÖĞ½«ÆäºÍºóÃæµÄÖµÉ¾³ı
+//åœ¨*argvå­—ç¬¦ä¸²ä¸­æ‰¾åˆ°*argå­—ç¬¦æ‰€åœ¨ä½ç½®ï¼Œå¹¶å°†å…¶åé¢çš„å‚æ•°è½¬ä¸ºintç»™def
+//æ‰¾åˆ°*argåï¼Œåœ¨å­—ç¬¦ä¸²ä¸­å°†å…¶å’Œåé¢çš„å€¼åˆ é™¤
 int find_int_arg(int argc, char **argv, char *arg, int def)
 {
     int i;
@@ -140,7 +140,7 @@ int find_int_arg(int argc, char **argv, char *arg, int def)
         if(!argv[i]) continue;
         if(0==strcmp(argv[i], arg)){
             def = atoi(argv[i+1]);
-            del_arg(argc, argv, i);//ÔÚ×Ö·û´®ÖĞÉ¾³ı*argºÍÖ®ºóµÄ×Ö·û
+            del_arg(argc, argv, i);//åœ¨å­—ç¬¦ä¸²ä¸­åˆ é™¤*argå’Œä¹‹åçš„å­—ç¬¦
             del_arg(argc, argv, i);
             break;
         }
@@ -301,11 +301,11 @@ list *split_str(char *s, char delim)
     }
     return l;
 }
-//½«×Ö·û´®sÖĞµÄ' '¡¢'\t'¡¢'\n' È¥µô
+//å°†å­—ç¬¦ä¸²sä¸­çš„' 'ã€'\t'ã€'\n' å»æ‰
 void strip(char *s)
 {
     size_t i;
-    size_t len = strlen(s)-1;//Õâ¸öÊä³öºÃÏñ¼ÆËãÁË\0???
+    size_t len = strlen(s);//è¿™ä¸ªè¾“å‡ºå¥½åƒè®¡ç®—äº†\0???
     size_t offset = 0;
     for(i = 0; i < len; ++i){
         char c = s[i];

@@ -172,6 +172,8 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
 
         i = get_current_batch(net);
         printf("%ld: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now()-time, i*imgs);
+        fprintf(stderr,"%ld: %f, %f avg, %f rate, %lf seconds, %d images\n", get_current_batch(net), loss, avg_loss, get_current_rate(net), what_time_is_it_now()-time, i*imgs);
+
         if(0 !=(record_file = fopen(record_filername,"a"))){
             memset(record_buffer,0,sizeof(record_buffer));
             buf_len = sprintf(record_buffer,"%d\t%d\t%e\t%f\t%f\n", 
