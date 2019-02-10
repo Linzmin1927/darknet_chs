@@ -3,10 +3,12 @@
 #根据网络结构生成一个随机初始化的权重文件
 ./darknet genweghts cfg/yolov3_mobilenet_v1.cfg backup/yolov3_mobilenet_0.weights
 ./darknet genweghts cfg/yolov3.cfg backup/yolov3_0.weights
+./darknet genweghts cfg/yolov3-tiny-mobilenet_v1.cfg backup/yolov3-tiny-mobilenetv1.weights
 
 #查看网络结构，并统计推理网络浮点数操作次数
 ./darknet ops cfg/yolov3_mobilenet_v1.cfg
-./darknet ops cfg/yolov3.cfg
+
+
 
 #计算速度
 ./darknet speed cfg/yolov3_mobilenet_v1.cfg
@@ -18,7 +20,11 @@
 ./darknet detector train cfg/coco_modilenet.data  cfg/yolo_mobilenet.cfg
 ./darknet detector train cfg/coco_modilenet.data  cfg/yolov3-tiny-modilenet_2.cfg backup/yolov3-tiny-modilenet_2_10000.weights
 
+./darknet detector train cfg/coco_modilenet.data  cfg/yolov3_mobilenet_v1.cfg weights/yolo3_mobilenet.weights -clear >> log/yolo3_mobilenetV1_190203.log
+./darknet detector train cfg/coco_modilenet.data  cfg/yolov3-tiny-mobilenet_v1.cfg weights/yolov3-tiny-mobilenet_v1.weights -clear >> log/yolo3_tiny_mobilenetV1_190203.log
+
 
 #加载主干网络权重
 ./darknet loadbackone cfg/yolov3_mobilenet_v1.cfg weights/mobilenet.weights weights/yolo3_mobilenet.weights 
 
+./darknet loadbackone cfg/yolov3-tiny-mobilenet_v1.cfg weights/mobilenet.weights weights/yolov3-tiny-mobilenetv1.weights 
