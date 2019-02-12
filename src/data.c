@@ -163,7 +163,12 @@ matrix load_image_augment_paths(char **paths, int n, int min, int max, int size,
 box_label *read_boxes(char *filename, int *n)
 {
     FILE *file = fopen(filename, "r");
-    if(!file) file_error(filename);
+    // if(!file) file_error(filename);
+    if(!file)
+    {
+        fprintf(stderr,"\nCounldn't open file %s \n",filename);
+        return NULL;
+    }
     float x, y, h, w;
     int id;
     int count = 0;

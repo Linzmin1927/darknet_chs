@@ -178,6 +178,11 @@ float box_union(box a, box b)
 
 float box_iou(box a, box b)
 {
+    float x = box_union(a, b);
+    if(x==0.0)
+    {
+        return 0;
+    }
     return box_intersection(a, b)/box_union(a, b);
 }
 
